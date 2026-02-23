@@ -3,10 +3,18 @@ let chart;
 
 // Load prices from the repo's static file
 fetch('/prices.json')
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) throw new Error(`Failed to load prices (HTTP ${response.status})`);
+        return response.json();
+    })
     .then(data => {
         priceData = data;
         displayPrices(priceData);
+    })
+    .catch(err => {
+        console.error('Price data unavailable:', err);
+        const table = document.getElementById('priceTable');
+        if (table) table.innerHTML = '<tr><td colspan="3">Could not load price data.</td></tr>';
     });
 
 // Chatbot UI handlers
