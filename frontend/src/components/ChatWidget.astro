@@ -92,14 +92,20 @@ initEyeTracking('bot-fab');
 initEyeTracking('bot-hdr');
 
 // ── Chat widget ───────────────────────────────────────────
-const fab    = document.getElementById('chatFab')!;
-const widget = document.getElementById('chatWidget')!;
-const closeBtn = document.getElementById('chatClose')!;
-const chatWindow = document.getElementById('chatWindow')!;
-const chatInput  = document.getElementById('chatInput') as HTMLInputElement;
-const chatSend   = document.getElementById('chatSend')!;
+const fab    = document.getElementById('chatFab');
+const widget = document.getElementById('chatWidget');
+const closeBtn = document.getElementById('chatClose');
+const chatWindow = document.getElementById('chatWindow');
+const chatInput  = document.getElementById('chatInput');
+const chatSend   = document.getElementById('chatSend');
 
-let intents: { tag: string; patterns: string[]; responses: string[] }[] = [];
+let intents: any[] = [];
+// If any core chat elements are missing, abort initialization silently.
+if (!fab || !widget || !closeBtn || !chatWindow || !chatInput || !chatSend) {
+  // leave a visible console note for debugging without throwing
+  console.warn('ChatWidget: missing DOM elements, chat initialization skipped.');
+} else {
+  // wrap the chat init in a block so remaining code assumes elements exist
 loadIntents();
 
 async function loadIntents() {
@@ -110,23 +116,23 @@ async function loadIntents() {
   } catch { /* silent */ }
 }
 
-function toggleChat(open?: boolean) {
-  const next = open !== undefined ? open : !fab.classList.contains('is-open');
-  fab.classList.toggle('is-open', next);
-  widget.classList.toggle('is-open', next);
-  fab.setAttribute('aria-expanded', String(next));
-  if (next) {
-    if (!chatWindow.childElementCount) addBotMsg('👋 Hi! Ask me about crop prices, markets, or use the tools above.');
-    setTimeout(() => chatInput.focus(), 220);
+  function toggleChat(open) {
+    const next = open !== undefined ? open : !fab.classList.contains('is-open');
+    fab.classList.toggle('is-open', next);
+    widget.classList.toggle('is-open', next);
+    fab.setAttribute('aria-expanded', String(next));
+    if (next) {
+      if (!chatWindow.childElementCount) addBotMsg('👋 Hi! Ask me about crop prices, markets, or use the tools above.');
+      setTimeout(() => { try { chatInput.focus(); } catch (e) {} }, 220);
+    }
   }
-}
 
-fab.addEventListener('click', () => toggleChat());
-closeBtn.addEventListener('click', () => toggleChat(false));
-document.addEventListener('keydown', e => { if (e.key === 'Escape') toggleChat(false); });
+  fab.addEventListener('click', () => toggleChat());
+  closeBtn.addEventListener('click', () => toggleChat(false));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') toggleChat(false); });
 
-chatSend.addEventListener('click', sendMsg);
-chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendMsg(); });
+  chatSend.addEventListener('click', sendMsg);
+  chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendMsg(); });
 
 function addMsg(text: string, who: 'user' | 'bot') {
   const div = document.createElement('div');
@@ -156,5 +162,6 @@ function getReply(q: string): string {
     }
   }
   return "I'm not sure about that. Try asking about crop prices, markets, or how to download data!";
+}
 }
 </script>

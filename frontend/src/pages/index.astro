@@ -111,10 +111,12 @@ import ChatWidget from '../components/ChatWidget.astro';
 
   <ChatWidget />
 
-</Layout>
+  </Layout>
 
-<script>
-import Chart from 'chart.js/auto';
+  <!-- Load Chart.js from CDN to avoid bundling issues during build -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js" defer></script>
+
+  <script>
 
 // ── Helpers ──────────────────────────────────────────────
 const fmt = (n: number) =>
@@ -156,10 +158,17 @@ async function loadPrices() {
   loadBtn.textContent = 'Loading…';
 
   try {
-    const res = await fetch('/api/prices');
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    // Try backend API first, fall back to packaged `prices.json` for static deploys
+    let res = await fetch('/api/prices');
+    if (!res.ok) {
+      try {
+        res = await fetch('/prices.json');
+      } catch (e) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+    }
     const data = await res.json();
-    allData = data ?? [];
+    allData = Array.isArray(data) ? data : (data?.prices || data || []);
 
     if (!allData.length) {
       showToast('No price data found.', 'info');
