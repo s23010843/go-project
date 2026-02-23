@@ -1,0 +1,46 @@
+[
+  {
+    "patterns": ["^(hi|hello|hey|hiya|howdy|good\\s*(morning|afternoon|evening)|greetings?)\\b"],
+    "replies": [
+      "Hello! 👋 Ask me about any crop price — e.g. 'Wheat in Central' or 'Rice price'.",
+      "Hi there! I know prices for Wheat, Rice, Onion, and Tomato across markets. What would you like to know?",
+      "Hey! How can I help? Try asking: 'price of Onion in North'."
+    ]
+  },
+  {
+    "patterns": ["\\b(thanks?|thank you|thx|ty)\\b"],
+    "replies": [
+      "You're welcome! 😊 Ask anytime.",
+      "Happy to help! Anything else?",
+      "Glad I could help!"
+    ]
+  },
+  {
+    "patterns": ["\\b(bye|goodbye|see\\s*you|later|cya)\\b"],
+    "replies": [
+      "Goodbye! Come back anytime for fresh prices. 🌾",
+      "See you! Happy farming. 👋",
+      "Bye! Take care."
+    ]
+  },
+  {
+    "patterns": ["\\b(who are you|what are you|your name|about you)\\b"],
+    "replies": [
+      "I'm the Farm Price Assistant 🌾 — I give you live crop prices across markets. Try: 'Rice in South'."
+    ]
+  },
+  {
+    "patterns": ["\\b(help|what can you do|how.*work|commands?)\\b"],
+    "replies": [
+      "I can look up crop prices! Just ask:\n• 'Price of Wheat'\n• 'Onion in North'\n• 'Rice in Central market'\nAvailable crops: Wheat, Rice, Onion, Tomato. Markets: Central, North, South."
+    ]
+  },
+  {
+    "patterns": ["\\b(what crops?|which crops?|available crops?|list crops?)\\b"],
+    "replies": ["__CROPS__"]
+  },
+  {
+    "patterns": ["\\b(what markets?|which markets?|available markets?|list markets?)\\b"],
+    "replies": ["__MARKETS__"]
+  }
+]

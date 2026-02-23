@@ -43,10 +43,56 @@ function parseQuery(text) {
     return { crop: foundCrop, market: foundMarket };
 }
 
+let intents = [];
+
+// Load intents from JSON and compile pattern strings into RegExp
+fetch('/intents.json')
+    .then(r => {
+        if (!r.ok) throw new Error(`Failed to load intents (HTTP ${r.status})`);
+        return r.json();
+    })
+    .then(data => {
+        intents = data.map(intent => ({
+            patterns: intent.patterns.map(p => new RegExp(p, 'i')),
+            replies: intent.replies
+        }));
+    })
+    .catch(err => console.error('Intents unavailable:', err));
+
+function resolveReply(reply) {
+    if (reply === '__CROPS__') {
+        const crops = [...new Set(priceData.map(p => p.crop))].join(', ') || 'Wheat, Rice, Onion, Tomato';
+        return `Available crops: ${crops}.`;
+    }
+    if (reply === '__MARKETS__') {
+        const markets = [...new Set(priceData.map(p => p.market))].join(', ') || 'Central, North, South';
+        return `Available markets: ${markets}.`;
+    }
+    return reply;
+}
+
+function matchIntent(text) {
+    const t = text.toLowerCase();
+    for (const intent of intents) {
+        if (intent.patterns.some(rx => rx.test(t))) {
+            const replies = intent.replies;
+            const reply = replies[Math.floor(Math.random() * replies.length)];
+            return resolveReply(reply);
+        }
+    }
+    return null;
+}
+
 function respondTo(text) {
+    const smallTalk = matchIntent(text);
+    if (smallTalk) {
+        appendMessage(smallTalk, 'bot');
+        return;
+    }
+
     const q = parseQuery(text);
     if (!q.crop && !q.market) {
-        appendMessage("I can answer price questions. Ask like: 'price of Wheat in Central'", 'bot');
+        appendMessage("I'm not sure I understand. Try asking: 'price of Wheat in Central', or type 'help' for options.", 'bot');
         return;
     }
 
