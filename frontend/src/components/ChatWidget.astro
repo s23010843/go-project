@@ -43,7 +43,7 @@ import BotSvg from './BotSvg.astro';
 
 <script>
 // ── Eye tracking ──────────────────────────────────────────
-function initEyeTracking(prefix, maxR = 2.2) {
+function initEyeTracking(prefix: string, maxR = 2.2) {
   const pupilL = document.getElementById(`${prefix}-pupil-l`);
   const pupilR = document.getElementById(`${prefix}-pupil-r`);
   const glintL = document.getElementById(`${prefix}-glint-l`);
@@ -57,7 +57,7 @@ function initEyeTracking(prefix, maxR = 2.2) {
     glx: 24.5, gly: 33, grx: 42.5, gry: 33,
   };
 
-  function move(e) {
+  function move(e: any) {
     const svg = getSvgEl(); if (!svg) return;
     const rect = svg.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
@@ -106,48 +106,56 @@ if (!fab || !widget || !closeBtn || !chatWindow || !chatInput || !chatSend) {
   console.warn('ChatWidget: missing DOM elements, chat initialization skipped.');
 } else {
   // wrap the chat init in a block so remaining code assumes elements exist
-loadIntents();
+  // create strongly-typed, non-null locals to satisfy TypeScript narrowing
+  const $fab = fab as HTMLElement;
+  const $widget = widget as HTMLElement;
+  const $closeBtn = closeBtn as HTMLElement;
+  const $chatWindow = chatWindow as HTMLElement;
+  const $chatInput = chatInput as HTMLInputElement;
+  const $chatSend = chatSend as HTMLElement;
 
-async function loadIntents() {
-  try {
-    const res = await fetch('/intents.json');
-    const data = await res.json();
-    intents = data.intents ?? [];
-  } catch { /* silent */ }
-}
+  loadIntents();
 
-  function toggleChat(open) {
-    const next = open !== undefined ? open : !fab.classList.contains('is-open');
-    fab.classList.toggle('is-open', next);
-    widget.classList.toggle('is-open', next);
-    fab.setAttribute('aria-expanded', String(next));
+  async function loadIntents() {
+    try {
+      const res = await fetch('/intents.json');
+      const data = await res.json();
+      intents = data.intents ?? [];
+    } catch { /* silent */ }
+  }
+
+  function toggleChat(open?: boolean) {
+    const next = open !== undefined ? open : !$fab.classList.contains('is-open');
+    $fab.classList.toggle('is-open', next);
+    $widget.classList.toggle('is-open', next);
+    $fab.setAttribute('aria-expanded', String(next));
     if (next) {
-      if (!chatWindow.childElementCount) addBotMsg('👋 Hi! Ask me about crop prices, markets, or use the tools above.');
-      setTimeout(() => { try { chatInput.focus(); } catch (e) {} }, 220);
+      if (!$chatWindow.childElementCount) addBotMsg('👋 Hi! Ask me about crop prices, markets, or use the tools above.');
+      setTimeout(() => { try { $chatInput.focus(); } catch (e) {} }, 220);
     }
   }
 
-  fab.addEventListener('click', () => toggleChat());
-  closeBtn.addEventListener('click', () => toggleChat(false));
+  $fab.addEventListener('click', () => toggleChat());
+  $closeBtn.addEventListener('click', () => toggleChat(false));
   document.addEventListener('keydown', e => { if (e.key === 'Escape') toggleChat(false); });
 
-  chatSend.addEventListener('click', sendMsg);
-  chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendMsg(); });
+  $chatSend.addEventListener('click', sendMsg);
+  $chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendMsg(); });
 
 function addMsg(text: string, who: 'user' | 'bot') {
   const div = document.createElement('div');
   div.className = `chat-message ${who}`;
   div.textContent = text;
-  chatWindow.appendChild(div);
-  chatWindow.scrollTop = chatWindow.scrollHeight;
+  $chatWindow.appendChild(div);
+  $chatWindow.scrollTop = $chatWindow.scrollHeight;
 }
 function addBotMsg(text: string) { addMsg(text, 'bot'); }
 function addUserMsg(text: string) { addMsg(text, 'user'); }
 
 function sendMsg() {
-  const raw = chatInput.value.trim(); if (!raw) return;
+  const raw = $chatInput.value.trim(); if (!raw) return;
   addUserMsg(raw);
-  chatInput.value = '';
+  $chatInput.value = '';
   const reply = getReply(raw.toLowerCase());
   setTimeout(() => addBotMsg(reply), 320);
 }
