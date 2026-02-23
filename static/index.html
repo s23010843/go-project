@@ -68,18 +68,39 @@
         <p id="alertMessage"></p>
     </div>
 
-    <!-- Chatbot -->
-    <div class="card">
-        <div class="card-title">💬 Price Assistant</div>
-        <div id="chatWindow" class="chat-window"></div>
-        <div class="chat-input">
-            <input id="chatInput" type="text" placeholder="Ask e.g. 'price of Wheat in Central'">
-            <button id="sendBtn">Send</button>
-        </div>
-        <p class="chat-note">Try: "price of Wheat in Central" · "what's the price of Rice"</p>
-    </div>
-
 </div><!-- /.page-wrapper -->
+
+<!-- ── Floating Chat Widget ───────────────────────────── -->
+<div id="chatWidget" class="chat-widget" aria-hidden="true">
+  <div class="chat-widget-header">
+    <div class="chat-widget-title">
+      <img src="bot.svg" alt="Bot" class="chat-header-icon">
+      <span>Price Assistant</span>
+    </div>
+    <button id="chatCloseBtn" class="chat-close-btn" aria-label="Close chat">
+      <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M5 5l10 10M15 5L5 15" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+  <div id="chatWindow" class="chat-window"></div>
+  <div class="chat-input-row">
+    <input id="chatInput" type="text" placeholder="Ask e.g. Wheat in Central…" autocomplete="off">
+    <button id="sendBtn" aria-label="Send">
+      <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 10L18 2l-4 8 4 8L2 10z" fill="white"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<!-- FAB toggle button -->
+<button id="chatFab" class="chat-fab" aria-label="Open Price Assistant">
+  <img src="bot.svg" alt="Chat" class="fab-icon fab-icon--bot">
+  <svg class="fab-icon fab-icon--close" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M5 5l10 10M15 5L5 15" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+  </svg>
+</button>
 
 <script src="script.js"></script>
 </body>

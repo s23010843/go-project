@@ -25,6 +25,14 @@ function appendMessage(text, who="bot") {
     msg.innerText = text;
     win.appendChild(msg);
     win.scrollTop = win.scrollHeight;
+
+    // Show unread dot on FAB when widget is closed and bot replies
+    if (who === 'bot') {
+        const fab = document.getElementById('chatFab');
+        if (fab && !fab.classList.contains('is-open')) {
+            fab.classList.add('has-unread');
+        }
+    }
 }
 
 function parseQuery(text) {
@@ -122,9 +130,37 @@ function respondTo(text) {
 
 function setupChat() {
     const input = document.getElementById('chatInput');
-    const btn = document.getElementById('sendBtn');
+    const sendBtn = document.getElementById('sendBtn');
+    const fab = document.getElementById('chatFab');
+    const widget = document.getElementById('chatWidget');
+    const closeBtn = document.getElementById('chatCloseBtn');
 
-    btn.addEventListener('click', () => {
+    // Toggle open/close
+    function openChat() {
+        widget.classList.add('is-open');
+        widget.setAttribute('aria-hidden', 'false');
+        fab.classList.add('is-open');
+        fab.classList.remove('has-unread');
+        input.focus();
+    }
+
+    function closeChat() {
+        widget.classList.remove('is-open');
+        widget.setAttribute('aria-hidden', 'true');
+        fab.classList.remove('is-open');
+    }
+
+    fab.addEventListener('click', () => {
+        widget.classList.contains('is-open') ? closeChat() : openChat();
+    });
+    closeBtn.addEventListener('click', closeChat);
+
+    // Send on Enter key
+    input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') sendBtn.click();
+    });
+
+    sendBtn.addEventListener('click', () => {
         const val = input.value.trim();
         if (!val) return;
         appendMessage(val, 'user');
