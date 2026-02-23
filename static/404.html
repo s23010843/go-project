@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 – Page Not Found | Farm Market Price Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    .error-page {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: calc(100vh - 160px);
+      text-align: center;
+      padding: 40px 24px;
+      gap: 20px;
+    }
+    .error-code {
+      font-size: 7rem;
+      font-weight: 700;
+      line-height: 1;
+      background: linear-gradient(135deg, #2e7d32, #43a047);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -4px;
+    }
+    .error-bot {
+      width: 110px;
+      height: 110px;
+      filter: drop-shadow(0 6px 18px rgba(46,125,50,.25));
+      animation: floatBot 3s ease-in-out infinite;
+    }
+    @keyframes floatBot {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-10px); }
+    }
+    .error-title {
+      font-size: 1.55rem;
+      font-weight: 700;
+      color: var(--green-900);
+    }
+    .error-msg {
+      color: var(--muted);
+      font-size: .97rem;
+      max-width: 380px;
+      line-height: 1.6;
+    }
+    .error-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 8px;
+    }
+    .btn-home {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, var(--green-700), var(--green-900));
+      color: #fff;
+      font-weight: 600;
+      font-size: .93rem;
+      padding: 11px 26px;
+      border-radius: 8px;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: opacity .18s ease, transform .18s ease;
+      box-shadow: 0 4px 14px rgba(30,90,35,.30);
+    }
+    .btn-home:hover { opacity: .88; transform: translateY(-1px); }
+    .btn-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: transparent;
+      color: var(--green-700);
+      font-weight: 600;
+      font-size: .93rem;
+      padding: 11px 26px;
+      border-radius: 8px;
+      text-decoration: none;
+      border: 2px solid var(--green-500);
+      cursor: pointer;
+      transition: background .18s ease, transform .18s ease;
+    }
+    .btn-back:hover { background: var(--green-100); transform: translateY(-1px); }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🌾 Farm Market Price Portal</h1>
+  <p>Live crop prices across markets — search, filter &amp; analyse</p>
+</header>
+
+<div class="error-page">
+
+  <!-- Inline bot SVG with eye-tracking -->
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 56" fill="none" class="error-bot" id="errBot404">
+    <defs>
+      <linearGradient id="bg404" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#2e7d32"/>
+        <stop offset="100%" stop-color="#1b5e20"/>
+      </linearGradient>
+      <filter id="glow404">
+        <feGaussianBlur stdDeviation="1.2" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <rect x="10" y="14" width="36" height="28" rx="9" ry="9" fill="url(#bg404)" stroke="rgba(255,255,255,0.35)" stroke-width="1.6"/>
+    <line x1="28" y1="14" x2="28" y2="8" stroke="#43a047" stroke-width="1.8" stroke-linecap="round"/>
+    <circle cx="28" cy="6.5" r="2.4" fill="#66bb6a" filter="url(#glow404)"/>
+    <circle cx="21" cy="26" r="3.5" fill="white" opacity="0.95"/>
+    <circle cx="35" cy="26" r="3.5" fill="white" opacity="0.95"/>
+    <circle id="p404-l" cx="21" cy="26" r="1.6" fill="#1b5e20"/>
+    <circle id="p404-r" cx="35" cy="26" r="1.6" fill="#1b5e20"/>
+    <circle id="g404-l" cx="22.4" cy="25.6" r="0.6" fill="white" opacity="0.8"/>
+    <circle id="g404-r" cx="36.4" cy="25.6" r="0.6" fill="white" opacity="0.8"/>
+    <!-- sad mouth for 404 -->
+    <path d="M21 36 Q28 31 35 36" stroke="white" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.9"/>
+    <rect x="7" y="22" width="4" height="8" rx="2" fill="rgba(255,255,255,0.35)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+    <rect x="45" y="22" width="4" height="8" rx="2" fill="rgba(255,255,255,0.35)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+    <!-- question mark badge -->
+    <circle cx="43" cy="40" r="7" fill="rgba(255,230,80,0.92)"/>
+    <text x="43" y="44" text-anchor="middle" font-size="9" font-weight="700" fill="#7a5c00">?</text>
+  </svg>
+
+  <div class="error-code">404</div>
+  <div class="error-title">Hmm, That Page Doesn't Exist</div>
+  <p class="error-msg">
+    Looks like this crop went missing from the market! 🌾<br>
+    The page you're looking for either never existed or has been moved.
+    Check the address bar for a typo, or just head back home.
+  </p>
+
+  <div class="error-actions">
+    <a href="/" class="btn-home">🏠 Go to Home</a>
+    <a href="javascript:history.back()" class="btn-back">← Go Back</a>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  var eyes = [
+    { cx:21, cy:26, maxR:1.4, pupil:'p404-l', glint:'g404-l', gcx:22.4, gcy:25.6 },
+    { cx:35, cy:26, maxR:1.4, pupil:'p404-r', glint:'g404-r', gcx:36.4, gcy:25.6 }
+  ];
+  document.addEventListener('mousemove', function (e) {
+    var svg = document.getElementById('errBot404');
+    if (!svg) return;
+    var rect = svg.getBoundingClientRect();
+    if (rect.width === 0) return;
+    var sx = rect.width / 56, sy = rect.height / 56;
+    eyes.forEach(function (eye) {
+      var p = document.getElementById(eye.pupil);
+      var g = document.getElementById(eye.glint);
+      if (!p) return;
+      var ex = rect.left + eye.cx * sx, ey = rect.top + eye.cy * sy;
+      var dx = e.clientX - ex, dy = e.clientY - ey;
+      var dist = Math.sqrt(dx*dx + dy*dy);
+      var t = eye.maxR * Math.min(1, dist / 60);
+      var ox = dist > 0 ? dx/dist*t : 0, oy = dist > 0 ? dy/dist*t : 0;
+      p.setAttribute('cx', eye.cx + ox);
+      p.setAttribute('cy', eye.cy + oy);
+      if (g) { g.setAttribute('cx', eye.gcx + ox*0.5); g.setAttribute('cy', eye.gcy + oy*0.5); }
+    });
+  }, { passive: true });
+}());
+</script>
+</body>
+</html>

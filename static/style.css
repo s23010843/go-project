@@ -46,6 +46,39 @@ header p {
   font-size: .95rem;
 }
 
+/* ── Install / Add-to-Home-Screen button ──────────────── */
+.install-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 16px;
+  padding: 9px 22px;
+  border-radius: 24px;
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+  font-family: inherit;
+  font-size: .88rem;
+  font-weight: 600;
+  border: 1.5px solid rgba(255,255,255,0.55);
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: background .18s ease, transform .18s ease, box-shadow .18s ease;
+  box-shadow: 0 2px 12px rgba(0,0,0,.12);
+  letter-spacing: .01em;
+}
+.install-btn:hover {
+  background: rgba(255,255,255,0.28);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,.18);
+}
+.install-btn:active { transform: translateY(0); }
+/* slide-in animation when the button is revealed */
+@keyframes installSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.install-btn:not([hidden]) { animation: installSlideIn .3s ease; }
+
 /* ── Layout wrapper ───────────────────────────────────── */
 .page-wrapper {
   max-width: 960px;
@@ -430,4 +463,192 @@ tbody tr:hover td { background: #f5fbf5; }
   .controls { flex-direction: column; align-items: stretch; }
   button, input, select { width: 100%; }
   .card { padding: 16px; }
+}
+
+/* ── Skip link (keyboard / a11y) ──────────────────────── */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 16px;
+  background: var(--green-900);
+  color: #fff;
+  padding: 8px 18px;
+  border-radius: 0 0 8px 8px;
+  font-weight: 600;
+  font-size: .9rem;
+  text-decoration: none;
+  z-index: 9999;
+  transition: top .15s ease;
+}
+.skip-link:focus { top: 0; outline: 3px solid #ffeb3b; outline-offset: 2px; }
+
+/* ── Screen-reader–only helper ────────────────────────── */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Improved focus-visible ───────────────────────────── */
+:focus-visible {
+  outline: 3px solid var(--green-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Stats bar ────────────────────────────────────────── */
+.stats-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  background: linear-gradient(135deg, #e8f5e9, #f1f8f2);
+  border-bottom: 1px solid var(--border);
+}
+.stats-bar[hidden] { display: none; }
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 14px 28px;
+  border-right: 1px solid var(--border);
+  flex: 1;
+  min-width: 110px;
+}
+.stat-item:last-child { border-right: none; }
+.stat-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--green-900);
+  line-height: 1.1;
+}
+.stat-label {
+  font-size: .71rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-top: 3px;
+}
+
+/* ── Filter hint / result count ───────────────────────── */
+.filter-hint {
+  margin-top: 8px;
+  font-size: .82rem;
+  color: var(--muted);
+  min-height: 1.2em;
+}
+
+/* ── Empty / loading states ───────────────────────────── */
+.empty-state {
+  padding: 36px 20px;
+  text-align: center;
+  color: var(--muted);
+}
+.empty-state-icon { font-size: 2.4rem; margin-bottom: 10px; }
+.empty-state p { font-size: .91rem; line-height: 1.6; }
+
+/* Loading skeleton */
+.skeleton {
+  display: inline-block;
+  width: 75%;
+  height: 13px;
+  background: linear-gradient(90deg, #e8f5e9 25%, #d4ecd6 50%, #e8f5e9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 4px;
+}
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+.skeleton-row td { padding: 14px 16px; }
+
+/* ── Toast notifications ──────────────────────────────── */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+}
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: .88rem;
+  font-weight: 500;
+  box-shadow: 0 8px 28px rgba(0,0,0,.15);
+  pointer-events: all;
+  animation: toastIn .25s ease;
+  background: var(--green-900);
+  color: #fff;
+}
+.toast.error   { background: #c62828; }
+.toast.info    { background: var(--green-700); }
+.toast.success { background: #2e7d32; }
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(-14px) scale(.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes toastOut {
+  to   { opacity: 0; transform: translateY(-8px) scale(.95); }
+}
+.toast.removing { animation: toastOut .22s ease forwards; }
+
+/* ── Footer ───────────────────────────────────────────── */
+.site-footer {
+  background: var(--green-900);
+  color: rgba(255,255,255,.72);
+  text-align: center;
+  padding: 18px 24px;
+  font-size: .82rem;
+}
+.footer-inner {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+.footer-sep { opacity: .35; }
+.site-footer a {
+  color: rgba(255,255,255,.9);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255,255,255,.3);
+  transition: border-color .15s ease;
+}
+.site-footer a:hover { border-color: rgba(255,255,255,.8); }
+
+/* ── Reduced motion ───────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+/* ── Print ────────────────────────────────────────────── */
+@media print {
+  header, .chat-fab, .chat-widget, .toast-container,
+  .stats-bar, footer, .controls button { display: none !important; }
+  .page-wrapper { padding: 0; }
+  .card { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
+}
+
+/* ── Stats bar responsive ─────────────────────────────── */
+@media (max-width: 600px) {
+  .stat-item { padding: 10px 12px; min-width: 90px; }
+  .stat-value { font-size: 1.1rem; }
+  .stats-bar { justify-content: flex-start; overflow-x: auto; flex-wrap: nowrap; }
 }
