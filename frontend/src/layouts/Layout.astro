@@ -68,8 +68,8 @@ const { title = 'Farm Market Prices', description = 'Real-time farm market price
 
   <script>
     // Minimal toast helper (pages may provide #toastContainer; create if missing)
-    function _getToastContainer() {
-      let c = document.getElementById('toastContainer');
+    function _getToastContainer(): HTMLElement {
+      let c = document.getElementById('toastContainer') as HTMLElement | null;
       if (!c) {
         c = document.createElement('div');
         c.id = 'toastContainer';
@@ -81,7 +81,7 @@ const { title = 'Farm Market Prices', description = 'Real-time farm market price
       return c;
     }
 
-    function createToast(msg, type = 'info', duration = 3200) {
+    function createToast(msg: string, type: 'info' | 'success' | 'error' = 'info', duration = 3200): void {
       const container = _getToastContainer();
       const t = document.createElement('div');
       t.className = `toast ${type}`;
@@ -94,26 +94,30 @@ const { title = 'Farm Market Prices', description = 'Real-time farm market price
       }, duration);
     }
 
-    function setCookieConsent(enabled) {
+    function setCookieConsent(enabled: boolean): void {
       const val = enabled ? '1' : '0';
       const expires = new Date(Date.now() + 365*24*60*60*1000).toUTCString();
       document.cookie = `cookie_consent=${val}; path=/; expires=${expires}; SameSite=Lax`;
-      document.getElementById('cookieBanner').style.display = 'none';
+      const banner = document.getElementById('cookieBanner');
+      if (banner) banner.style.display = 'none';
       createToast(enabled ? 'Cookies enabled' : 'Cookies disabled', enabled ? 'success' : 'info');
     }
 
-    function readCookieConsent() {
+    function readCookieConsent(): string | null {
       const m = document.cookie.match(/(?:^|; )cookie_consent=([^;]+)/);
       return m ? m[1] : null;
     }
 
     window.addEventListener('load', () => {
       const consent = readCookieConsent();
-      if (consent === null) {
-        document.getElementById('cookieBanner').style.display = '';
+      const banner = document.getElementById('cookieBanner');
+      if (consent === null && banner) {
+        banner.style.display = '';
       }
-      document.getElementById('enableCookiesBtn').addEventListener('click', () => setCookieConsent(true));
-      document.getElementById('disableCookiesBtn').addEventListener('click', () => setCookieConsent(false));
+      const enableBtn = document.getElementById('enableCookiesBtn');
+      const disableBtn = document.getElementById('disableCookiesBtn');
+      if (enableBtn) enableBtn.addEventListener('click', () => setCookieConsent(true));
+      if (disableBtn) disableBtn.addEventListener('click', () => setCookieConsent(false));
     });
   </script>
 </body>
