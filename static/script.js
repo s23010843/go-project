@@ -1,12 +1,93 @@
 let priceData = [];
 let chart;
 
-fetch('/api/prices')
+// Load prices from the repo's static file
+fetch('/prices.json')
     .then(response => response.json())
     .then(data => {
         priceData = data;
         displayPrices(priceData);
     });
+
+// Chatbot UI handlers
+function appendMessage(text, who="bot") {
+    const win = document.getElementById('chatWindow');
+    const msg = document.createElement('div');
+    msg.className = `chat-message ${who}`;
+    msg.innerText = text;
+    win.appendChild(msg);
+    win.scrollTop = win.scrollHeight;
+}
+
+function parseQuery(text) {
+    // very small parser: look for crop and market words
+    const t = text.toLowerCase();
+    // find crop by matching available crops
+    const crops = [...new Set(priceData.map(p => p.crop.toLowerCase()))];
+    const markets = [...new Set(priceData.map(p => p.market.toLowerCase()))];
+
+    let foundCrop = null;
+    let foundMarket = null;
+
+    for (const c of crops) if (t.includes(c)) { foundCrop = c; break; }
+    for (const m of markets) if (t.includes(m)) { foundMarket = m; break; }
+
+    return { crop: foundCrop, market: foundMarket };
+}
+
+function respondTo(text) {
+    const q = parseQuery(text);
+    if (!q.crop && !q.market) {
+        appendMessage("I can answer price questions. Ask like: 'price of Wheat in Central'", 'bot');
+        return;
+    }
+
+    const cropCap = q.crop ? q.crop.charAt(0).toUpperCase() + q.crop.slice(1) : null;
+    const marketCap = q.market ? q.market.charAt(0).toUpperCase() + q.market.slice(1) : null;
+
+    let matches = priceData.filter(p => {
+        return (!q.crop || p.crop.toLowerCase() === q.crop) &&
+               (!q.market || p.market.toLowerCase() === q.market);
+    });
+
+    if (matches.length === 0) {
+        appendMessage("Sorry, I couldn't find a matching price. Try a different crop or market.", 'bot');
+        return;
+    }
+
+    if (matches.length === 1) {
+        const m = matches[0];
+        appendMessage(`${m.crop} at ${m.market} is ₹${m.price}`, 'bot');
+        return;
+    }
+
+    // multiple matches -> summarise
+    const parts = matches.map(m => `${m.market}: ₹${m.price}`);
+    appendMessage(`${cropCap} prices — ${parts.join(' · ')}`, 'bot');
+}
+
+function setupChat() {
+    const input = document.getElementById('chatInput');
+    const btn = document.getElementById('sendBtn');
+
+    btn.addEventListener('click', () => {
+        const val = input.value.trim();
+        if (!val) return;
+        appendMessage(val, 'user');
+        respondTo(val);
+        input.value = '';
+    });
+
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            btn.click();
+        }
+    });
+
+    appendMessage('Hi — I can help with prices. Ask about a crop and optional market.', 'bot');
+}
+
+document.addEventListener('DOMContentLoaded', setupChat);
 
 function filterPrices() {
     const search = document.getElementById('searchInput').value.toLowerCase();

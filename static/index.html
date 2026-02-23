@@ -1,7 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Farm Market Price Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -9,44 +13,72 @@
 
 <header>
     <h1>🌾 Farm Market Price Portal</h1>
-    <p>Check latest crop prices across markets</p>
+    <p>Live crop prices across markets — search, filter &amp; analyse</p>
 </header>
 
-<div class="controls">
-    <input type="text" id="searchInput" placeholder="Search crop...">
-    
-    <select id="marketSelect">
-        <option value="">All Markets</option>
-        <option value="Central">Central</option>
-        <option value="North">North</option>
-        <option value="South">South</option>
-    </select>
+<div class="page-wrapper">
 
-    <button onclick="filterPrices()">Filter</button>
-</div>
+    <!-- Search & Filter -->
+    <div class="card">
+        <div class="card-title">🔍 Filter Prices</div>
+        <div class="controls">
+            <input type="text" id="searchInput" placeholder="Search crop…">
+            <select id="marketSelect">
+                <option value="">All Markets</option>
+                <option value="Central">Central</option>
+                <option value="North">North</option>
+                <option value="South">South</option>
+            </select>
+            <button onclick="filterPrices()">Apply Filter</button>
+            <button class="btn-secondary" onclick="downloadCSV()">⬇ Download CSV</button>
+        </div>
+    </div>
 
-<table id="priceTable">
-    <thead>
-        <tr>
-            <th>Crop</th>
-            <th>Market</th>
-            <th>Price (₹)</th>
-        </tr>
-    </thead>
-    <tbody></tbody>
-</table>
+    <!-- Price Table -->
+    <div class="card">
+        <div class="card-title">📋 Price List</div>
+        <div class="table-wrapper">
+            <table id="priceTable">
+                <thead>
+                    <tr>
+                        <th>Crop</th>
+                        <th>Market</th>
+                        <th>Price (₹)</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
 
-<h2>📊 Price Comparison</h2>
-<canvas id="priceChart"></canvas>
+    <!-- Chart -->
+    <div class="card">
+        <div class="card-title">📊 Price Comparison</div>
+        <canvas id="priceChart"></canvas>
+    </div>
 
-<button onclick="downloadCSV()">Download CSV</button>
+    <!-- Price Alert -->
+    <div class="card">
+        <div class="card-title">🔔 Set Price Alert</div>
+        <div class="alert-form">
+            <input type="number" id="alertPrice" placeholder="Enter target price (₹)">
+            <button onclick="setAlert()">Set Alert</button>
+        </div>
+        <p id="alertMessage"></p>
+    </div>
 
-<div class="alert-box">
-    <h3>🔔 Set Price Alert</h3>
-    <input type="number" id="alertPrice" placeholder="Enter target price">
-    <button onclick="setAlert()">Set Alert</button>
-    <p id="alertMessage"></p>
-</div>
+    <!-- Chatbot -->
+    <div class="card">
+        <div class="card-title">💬 Price Assistant</div>
+        <div id="chatWindow" class="chat-window"></div>
+        <div class="chat-input">
+            <input id="chatInput" type="text" placeholder="Ask e.g. 'price of Wheat in Central'">
+            <button id="sendBtn">Send</button>
+        </div>
+        <p class="chat-note">Try: "price of Wheat in Central" · "what's the price of Rice"</p>
+    </div>
+
+</div><!-- /.page-wrapper -->
 
 <script src="script.js"></script>
 </body>
