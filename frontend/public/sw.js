@@ -6,7 +6,7 @@
      • Offline navigation  → serve cached page or /offline.html
    ─────────────────────────────────────────────────────────────────────── */
 
-const VERSION   = 'v1';
+const VERSION   = 'v2';
 const CACHE     = 'farm-market-' + VERSION;
 const OFFLINE   = '/offline.html';
 
@@ -60,9 +60,16 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  /* ── 2. CDN resources (fonts / Chart.js): cache-first, network fallback ── */
+  /* ── 2. CDN resources: only handle cross-origin fonts/images/styles.
+     Avoid intercepting cross-origin `script` or `module` requests because
+     those are CORS-sensitive and returning opaque responses causes the
+     browser to reject them (see console errors). Let the browser load
+     cross-origin scripts directly. */
   if (url.origin !== location.origin) {
-    event.respondWith(cacheFirstWithNetwork(request));
+    const allowed = ['font', 'image', 'style'];
+    if (allowed.includes(request.destination)) {
+      event.respondWith(cacheFirstWithNetwork(request));
+    }
     return;
   }
 
