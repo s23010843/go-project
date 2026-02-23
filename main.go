@@ -73,9 +73,9 @@ func serveErrorPage(w http.ResponseWriter, r *http.Request, code int) {
 	var page string
 	switch code {
 	case http.StatusNotFound:
-		page = "./static/404.html"
+		page = "./frontend/dist/404.html"
 	default:
-		page = "./static/500.html"
+		page = "./frontend/dist/500.html"
 	}
 	content, err := os.ReadFile(page)
 	if err != nil {
@@ -131,7 +131,7 @@ func main() {
 	mux.HandleFunc("/api/prices", getPrices)
 
 	// Serve frontend with custom error pages
-	fs := http.FileServer(http.Dir("./static"))
+	fs := http.FileServer(http.Dir("./frontend/dist"))
 	mux.Handle("/", customFileServer(fs))
 
 	// Wrap everything with security headers

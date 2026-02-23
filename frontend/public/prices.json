@@ -1,0 +1,8 @@
+[
+  {"crop":"Wheat","market":"Central","price":2200},
+  {"crop":"Wheat","market":"North","price":2100},
+  {"crop":"Rice","market":"Central","price":3100},
+  {"crop":"Rice","market":"South","price":3000},
+  {"crop":"Onion","market":"North","price":1800},
+  {"crop":"Tomato","market":"Central","price":1500}
+]

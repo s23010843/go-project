@@ -1,0 +1,75 @@
+---
+import Layout from '../layouts/Layout.astro';
+import BotSvg from '../components/BotSvg.astro';
+---
+<Layout title="You're Offline — Farm Market Prices">
+  <header>
+    <h1>🌾 Farm Market Prices</h1>
+  </header>
+  <main id="main-content">
+    <div class="page-wrapper" style="align-items:center; text-align:center; padding-top:60px">
+      <div class="card" style="max-width:480px; width:100%">
+        <div style="margin-bottom:16px">
+          <BotSvg idPrefix="bot-offline" size={90} />
+        </div>
+        <h2 style="font-size:1.5rem; color:#1b5e20; margin-bottom:8px">You're Offline</h2>
+        <p style="color:#607060; font-size:.93rem; line-height:1.7; margin-bottom:20px">
+          No internet connection detected. You can still access cached data.
+        </p>
+
+        <div class="card" style="background:#e8f5e9; border-color:#c8e6c9; text-align:left; margin-bottom:20px; padding:16px 20px">
+          <p style="font-weight:600; color:#2e7d32; margin-bottom:10px">✅ Available offline:</p>
+          <ul style="color:#607060; font-size:.88rem; line-height:1.9; list-style:none; padding:0">
+            <li>✔ Previously loaded price data</li>
+            <li>✔ Filter and search functionality</li>
+            <li>✔ CSV download of cached data</li>
+            <li>✔ FarmBot chat assistant</li>
+          </ul>
+        </div>
+
+        <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap">
+          <button id="retryBtn" style="padding:10px 24px; background:#2e7d32; color:#fff; border-radius:8px; border:none; font-weight:600; cursor:pointer; font-size:.93rem">
+            🔄 Try Again
+          </button>
+          <a href="/" style="display:inline-block; padding:10px 24px; background:#e8f5e9; color:#1b5e20; border:1px solid #c8e6c9; border-radius:8px; text-decoration:none; font-weight:600; font-size:.93rem">
+            🌾 Go Home
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+</Layout>
+
+<script>
+// Auto-reload when back online
+window.addEventListener('online', () => {
+  document.getElementById('retryBtn')!.textContent = '✅ Back online! Reloading…';
+  setTimeout(() => window.location.reload(), 800);
+});
+document.getElementById('retryBtn')!.addEventListener('click', () => window.location.reload());
+
+// Eye tracking
+(function() {
+  const pupilL = document.getElementById('bot-offline-pupil-l');
+  const pupilR = document.getElementById('bot-offline-pupil-r');
+  const glintL = document.getElementById('bot-offline-glint-l');
+  const glintR = document.getElementById('bot-offline-glint-r');
+  if (!pupilL) return;
+  const BASE = { lx:23, ly:35, rx:41, ry:35, glx:24.5, gly:33, grx:42.5, gry:33 };
+  const maxR = 2.2;
+  window.addEventListener('mousemove', (e) => {
+    const svg = pupilL.closest('svg'); if (!svg) return;
+    const rect = svg.getBoundingClientRect();
+    const angle = Math.atan2(e.clientY - (rect.top + rect.height/2), e.clientX - (rect.left + rect.width/2));
+    const cos = Math.cos(angle), sin = Math.sin(angle);
+    pupilL.setAttribute('cx', String(BASE.lx + cos * maxR));
+    pupilL.setAttribute('cy', String(BASE.ly + sin * maxR));
+    pupilR!.setAttribute('cx', String(BASE.rx + cos * maxR));
+    pupilR!.setAttribute('cy', String(BASE.ry + sin * maxR));
+    glintL!.setAttribute('cx', String(BASE.glx + cos * maxR));
+    glintL!.setAttribute('cy', String(BASE.gly + sin * maxR));
+    glintR!.setAttribute('cx', String(BASE.grx + cos * maxR));
+    glintR!.setAttribute('cy', String(BASE.gry + sin * maxR));
+  }, { passive: true });
+})();
+</script>

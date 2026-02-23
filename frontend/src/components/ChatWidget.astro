@@ -1,0 +1,153 @@
+---
+import BotSvg from './BotSvg.astro';
+---
+<!-- Floating Chat Button -->
+<button class="chat-fab" id="chatFab" aria-label="Open chat assistant" aria-expanded="false" aria-controls="chatWidget">
+  <span class="fab-icon fab-icon--bot">
+    <BotSvg idPrefix="bot-fab" size={38} />
+  </span>
+  <span class="fab-icon fab-icon--close" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
+  </span>
+</button>
+
+<!-- Chat Widget Panel -->
+<aside class="chat-widget" id="chatWidget" role="dialog" aria-label="Chat assistant" aria-modal="true">
+  <div class="chat-widget-header">
+    <div class="chat-widget-title">
+      <span class="chat-header-icon">
+        <BotSvg idPrefix="bot-hdr" size={28} />
+      </span>
+      <span>FarmBot Assistant</span>
+    </div>
+    <button class="chat-close-btn" id="chatClose" aria-label="Close chat">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+  <div class="chat-window" id="chatWindow" role="log" aria-live="polite" aria-label="Chat messages"></div>
+  <div class="chat-input-row">
+    <label for="chatInput" class="sr-only">Message FarmBot</label>
+    <input type="text" id="chatInput" placeholder="Ask about prices, crops…" autocomplete="off" aria-label="Message input" />
+    <button id="chatSend" aria-label="Send message">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13"/>
+        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+      </svg>
+    </button>
+  </div>
+</aside>
+
+<script>
+// ── Eye tracking ──────────────────────────────────────────
+function initEyeTracking(prefix: string, maxR = 2.2) {
+  const pupilL = document.getElementById(`${prefix}-pupil-l`);
+  const pupilR = document.getElementById(`${prefix}-pupil-r`);
+  const glintL = document.getElementById(`${prefix}-glint-l`);
+  const glintR = document.getElementById(`${prefix}-glint-r`);
+  if (!pupilL || !pupilR) return;
+
+  const getSvgEl = () => pupilL.closest('svg') as SVGSVGElement | null;
+
+  const BASE = {
+    lx: 23, ly: 35, rx: 41, ry: 35,
+    glx: 24.5, gly: 33, grx: 42.5, gry: 33,
+  };
+
+  function move(e: MouseEvent | TouchEvent) {
+    const svg = getSvgEl(); if (!svg) return;
+    const rect = svg.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const px = (e instanceof TouchEvent) ? e.touches[0].clientX : e.clientX;
+    const py = (e instanceof TouchEvent) ? e.touches[0].clientY : e.clientY;
+    const angle = Math.atan2(py - cy, px - cx);
+    const cos = Math.cos(angle), sin = Math.sin(angle);
+
+    pupilL!.setAttribute('cx', String(BASE.lx + cos * maxR));
+    pupilL!.setAttribute('cy', String(BASE.ly + sin * maxR));
+    pupilR!.setAttribute('cx', String(BASE.rx + cos * maxR));
+    pupilR!.setAttribute('cy', String(BASE.ry + sin * maxR));
+    glintL!.setAttribute('cx', String(BASE.glx + cos * maxR));
+    glintL!.setAttribute('cy', String(BASE.gly + sin * maxR));
+    glintR!.setAttribute('cx', String(BASE.grx + cos * maxR));
+    glintR!.setAttribute('cy', String(BASE.gry + sin * maxR));
+  }
+
+  window.addEventListener('mousemove', move, { passive: true });
+  window.addEventListener('touchmove', move, { passive: true });
+}
+
+initEyeTracking('bot-fab');
+initEyeTracking('bot-hdr');
+
+// ── Chat widget ───────────────────────────────────────────
+const fab    = document.getElementById('chatFab')!;
+const widget = document.getElementById('chatWidget')!;
+const closeBtn = document.getElementById('chatClose')!;
+const chatWindow = document.getElementById('chatWindow')!;
+const chatInput  = document.getElementById('chatInput') as HTMLInputElement;
+const chatSend   = document.getElementById('chatSend')!;
+
+let intents: { tag: string; patterns: string[]; responses: string[] }[] = [];
+loadIntents();
+
+async function loadIntents() {
+  try {
+    const res = await fetch('/intents.json');
+    const data = await res.json();
+    intents = data.intents ?? [];
+  } catch { /* silent */ }
+}
+
+function toggleChat(open?: boolean) {
+  const next = open !== undefined ? open : !fab.classList.contains('is-open');
+  fab.classList.toggle('is-open', next);
+  widget.classList.toggle('is-open', next);
+  fab.setAttribute('aria-expanded', String(next));
+  if (next) {
+    if (!chatWindow.childElementCount) addBotMsg('👋 Hi! Ask me about crop prices, markets, or use the tools above.');
+    setTimeout(() => chatInput.focus(), 220);
+  }
+}
+
+fab.addEventListener('click', () => toggleChat());
+closeBtn.addEventListener('click', () => toggleChat(false));
+document.addEventListener('keydown', e => { if (e.key === 'Escape') toggleChat(false); });
+
+chatSend.addEventListener('click', sendMsg);
+chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendMsg(); });
+
+function addMsg(text: string, who: 'user' | 'bot') {
+  const div = document.createElement('div');
+  div.className = `chat-message ${who}`;
+  div.textContent = text;
+  chatWindow.appendChild(div);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+function addBotMsg(text: string) { addMsg(text, 'bot'); }
+function addUserMsg(text: string) { addMsg(text, 'user'); }
+
+function sendMsg() {
+  const raw = chatInput.value.trim(); if (!raw) return;
+  addUserMsg(raw);
+  chatInput.value = '';
+  const reply = getReply(raw.toLowerCase());
+  setTimeout(() => addBotMsg(reply), 320);
+}
+
+function getReply(q: string): string {
+  for (const intent of intents) {
+    for (const pattern of intent.patterns) {
+      if (q.includes(pattern.toLowerCase())) {
+        const responses = intent.responses;
+        return responses[Math.floor(Math.random() * responses.length)];
+      }
+    }
+  }
+  return "I'm not sure about that. Try asking about crop prices, markets, or how to download data!";
+}
+</script>

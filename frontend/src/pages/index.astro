@@ -1,0 +1,381 @@
+---
+import Layout from '../layouts/Layout.astro';
+import StatsBar from '../components/StatsBar.astro';
+import ChatWidget from '../components/ChatWidget.astro';
+---
+<Layout title="Farm Market Prices" description="Compare farm-fresh produce prices across markets in India.">
+
+  <!-- Toast container -->
+  <div class="toast-container" id="toastContainer" role="status" aria-live="polite" aria-atomic="false"></div>
+
+  <!-- Header -->
+  <header>
+    <h1>🌾 Farm Market Prices</h1>
+    <p>Compare fresh produce prices across markets — download, filter, and plan ahead.</p>
+    <button id="installBtn" class="install-btn" hidden aria-label="Install app">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Install App
+    </button>
+  </header>
+
+  <!-- Stats bar -->
+  <StatsBar />
+
+  <main id="main-content">
+    <div class="page-wrapper">
+
+      <!-- Filters card -->
+      <section class="card" aria-labelledby="filters-title">
+        <h2 class="card-title" id="filters-title">🔍 Filters &amp; Search</h2>
+        <div class="controls">
+          <label for="cropFilter" class="sr-only">Filter by crop</label>
+          <select id="cropFilter" aria-label="Filter by crop">
+            <option value="">All Crops</option>
+          </select>
+
+          <label for="marketFilter" class="sr-only">Filter by market</label>
+          <select id="marketFilter" aria-label="Filter by market">
+            <option value="">All Markets</option>
+          </select>
+
+          <label for="searchInput" class="sr-only">Search prices</label>
+          <input type="text" id="searchInput" placeholder="Search crop or market…" aria-label="Search" />
+
+          <button id="loadBtn" type="button">Load Prices</button>
+          <button id="downloadBtn" type="button" class="btn-secondary" disabled>Download CSV</button>
+        </div>
+        <p class="filter-hint" id="filterHint" role="status" aria-live="polite"></p>
+      </section>
+
+      <!-- Prices table card -->
+      <section class="card" aria-labelledby="prices-title">
+        <h2 class="card-title" id="prices-title">💰 Price Comparison</h2>
+        <div class="table-wrapper">
+          <table id="priceTable" aria-label="Price comparison table">
+            <thead>
+              <tr>
+                <th scope="col">Crop</th>
+                <th scope="col">Market</th>
+                <th scope="col">Min (₹)</th>
+                <th scope="col">Max (₹)</th>
+                <th scope="col">Modal (₹)</th>
+              </tr>
+            </thead>
+            <tbody id="priceBody">
+              <tr class="skeleton-row">
+                <td><span class="skeleton"></span></td>
+                <td><span class="skeleton" style="width:60%"></span></td>
+                <td><span class="skeleton" style="width:40%"></span></td>
+                <td><span class="skeleton" style="width:40%"></span></td>
+                <td><span class="skeleton" style="width:40%"></span></td>
+              </tr>
+              <tr class="skeleton-row">
+                <td><span class="skeleton" style="width:55%"></span></td>
+                <td><span class="skeleton" style="width:70%"></span></td>
+                <td><span class="skeleton" style="width:40%"></span></td>
+                <td><span class="skeleton" style="width:40%"></span></td>
+                <td><span class="skeleton" style="width:40%"></span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Chart card -->
+      <section class="card" id="chartCard" aria-labelledby="chart-title">
+        <h2 class="card-title" id="chart-title">📊 Price Chart</h2>
+        <div id="chartPlaceholder" class="empty-state">
+          <div class="empty-state-icon">📊</div>
+          <p>Load prices to see the chart.<br><small>Use the <strong>Load Prices</strong> button above.</small></p>
+        </div>
+        <canvas id="priceChart" role="img" aria-label="Bar chart of prices" style="display:none"></canvas>
+      </section>
+
+      <!-- Alert card -->
+      <section class="card" aria-labelledby="alert-title">
+        <h2 class="card-title" id="alert-title">🔔 Price Alert</h2>
+        <div class="alert-form">
+          <label for="alertCrop" class="sr-only">Crop for alert</label>
+          <select id="alertCrop" aria-label="Select crop for alert">
+            <option value="">Select crop…</option>
+          </select>
+          <label for="alertPrice" class="sr-only">Alert price in ₹</label>
+          <input type="number" id="alertPrice" placeholder="Alert price (₹)" min="0" step="0.01" aria-label="Alert threshold price" />
+          <button id="setAlertBtn" type="button">Set Alert</button>
+        </div>
+        <p id="alertMessage" role="status" aria-live="polite"></p>
+      </section>
+
+    </div>
+  </main>
+
+  <ChatWidget />
+
+</Layout>
+
+<script>
+import Chart from 'chart.js/auto';
+
+// ── Helpers ──────────────────────────────────────────────
+const fmt = (n: number) =>
+  new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(n);
+
+function showToast(msg: string, type: 'info' | 'success' | 'error' = 'info', duration = 3500) {
+  const container = document.getElementById('toastContainer')!;
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.setAttribute('role', 'alert');
+  t.textContent = msg;
+  container.appendChild(t);
+  setTimeout(() => {
+    t.classList.add('removing');
+    t.addEventListener('animationend', () => t.remove(), { once: true });
+  }, duration);
+}
+
+// ── State ────────────────────────────────────────────────
+let allData: any[] = [];
+let chart: Chart | null = null;
+
+// ── DOM refs ─────────────────────────────────────────────
+const cropFilter   = document.getElementById('cropFilter')   as HTMLSelectElement;
+const marketFilter = document.getElementById('marketFilter') as HTMLSelectElement;
+const searchInput  = document.getElementById('searchInput')  as HTMLInputElement;
+const priceBody    = document.getElementById('priceBody')!;
+const filterHint   = document.getElementById('filterHint')!;
+const downloadBtn  = document.getElementById('downloadBtn')  as HTMLButtonElement;
+const loadBtn      = document.getElementById('loadBtn')!;
+const alertCrop    = document.getElementById('alertCrop')    as HTMLSelectElement;
+const alertPrice   = document.getElementById('alertPrice')   as HTMLInputElement;
+const setAlertBtn  = document.getElementById('setAlertBtn')!;
+const alertMsg     = document.getElementById('alertMessage')!;
+
+// ── Load prices ──────────────────────────────────────────
+async function loadPrices() {
+  loadBtn.setAttribute('disabled', '');
+  loadBtn.textContent = 'Loading…';
+
+  try {
+    const res = await fetch('/api/prices');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    allData = data ?? [];
+
+    if (!allData.length) {
+      showToast('No price data found.', 'info');
+      priceBody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-state-icon">🌱</div><p>No data available yet.</p></div></td></tr>`;
+      return;
+    }
+
+    populateFilters(allData);
+    displayPrices(allData);
+    updateChart(allData);
+    updateStats(allData);
+    downloadBtn.removeAttribute('disabled');
+    showToast(`Loaded ${allData.length} price records.`, 'success');
+  } catch (err) {
+    priceBody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-state-icon">⚠️</div><p><strong>Could not load prices.</strong><br>Check your connection and try again.</p></div></td></tr>`;
+    showToast('Failed to load prices. Please try again.', 'error');
+  } finally {
+    loadBtn.removeAttribute('disabled');
+    loadBtn.textContent = 'Load Prices';
+  }
+}
+
+// ── Populate filter selects ──────────────────────────────
+function populateFilters(data: any[]) {
+  const crops   = [...new Set(data.map((d: any) => d.commodity || d.crop))].sort() as string[];
+  const markets = [...new Set(data.map((d: any) => d.market))].sort() as string[];
+
+  function setOptions(sel: HTMLSelectElement, vals: string[], label: string) {
+    const cur = sel.value;
+    sel.innerHTML = `<option value="">${label}</option>`;
+    vals.forEach(v => {
+      const o = document.createElement('option');
+      o.value = o.textContent = v;
+      sel.appendChild(o);
+    });
+    if (vals.includes(cur)) sel.value = cur;
+  }
+
+  setOptions(cropFilter,   crops,   'All Crops');
+  setOptions(marketFilter, markets, 'All Markets');
+  setOptions(alertCrop,    crops,   'Select crop…');
+}
+
+// ── Display table ────────────────────────────────────────
+function displayPrices(data: any[]) {
+  const crop   = cropFilter.value.toLowerCase();
+  const market = marketFilter.value.toLowerCase();
+  const search = searchInput.value.toLowerCase();
+
+  const filtered = data.filter((d: any) => {
+    const c = (d.commodity || d.crop || '').toLowerCase();
+    const m = (d.market || '').toLowerCase();
+    return (!crop || c === crop)
+      && (!market || m === market)
+      && (!search || c.includes(search) || m.includes(search));
+  });
+
+  filterHint.textContent = (search || crop || market)
+    ? `Showing ${filtered.length} of ${data.length} records`
+    : '';
+
+  if (!filtered.length) {
+    priceBody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-state-icon">🔍</div><p>No results match your filters.<br><small>Try changing or clearing the filters above.</small></p></div></td></tr>`;
+    updateChart([]);
+    return;
+  }
+
+  const prices = filtered.map((d: any) => Number(d.modal_price || d.modalPrice || d.price || 0));
+  const max = Math.max(...prices);
+  const min = Math.min(...prices);
+
+  priceBody.innerHTML = filtered.map((d: any) => {
+    const name = d.commodity || d.crop || 'Unknown';
+    const mkt  = d.market || '—';
+    const lo   = Number(d.min_price  || d.minPrice  || 0);
+    const hi   = Number(d.max_price  || d.maxPrice  || 0);
+    const mod  = Number(d.modal_price || d.modalPrice || d.price || 0);
+    const cls  = mod === max ? 'highest' : mod === min ? 'lowest' : '';
+    return `<tr class="${cls}">
+      <td>${name}</td><td>${mkt}</td>
+      <td>₹${fmt(lo)}</td><td>₹${fmt(hi)}</td><td>₹${fmt(mod)}</td>
+    </tr>`;
+  }).join('');
+
+  updateChart(filtered);
+}
+
+// ── Update chart ─────────────────────────────────────────
+function updateChart(data: any[]) {
+  const canvas = document.getElementById('priceChart') as HTMLCanvasElement;
+  const placeholder = document.getElementById('chartPlaceholder')!;
+
+  if (chart) { chart.destroy(); chart = null; }
+
+  if (!data || !data.length) {
+    canvas.style.display = 'none';
+    placeholder.style.display = '';
+    return;
+  }
+
+  const prices = data.map((d: any) => Number(d.modal_price || d.modalPrice || d.price || 0));
+  const maxP   = Math.max(...prices);
+  const minP   = Math.min(...prices);
+
+  canvas.style.display = '';
+  placeholder.style.display = 'none';
+
+  chart = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: data.map((d: any) => `${d.commodity || d.crop} (${d.market})`),
+      datasets: [{
+        label: 'Modal Price (₹)',
+        data: prices,
+        backgroundColor: prices.map(p =>
+          p === maxP ? 'rgba(27,94,32,0.85)' :
+          p === minP ? 'rgba(198,40,40,0.75)' :
+                       'rgba(67,160,71,0.65)'
+        ),
+        borderColor: prices.map(p =>
+          p === maxP ? 'rgba(27,94,32,1)' :
+          p === minP ? 'rgba(198,40,40,1)' :
+                       'rgba(46,125,50,1)'
+        ),
+        borderWidth: 1.5,
+        borderRadius: 5,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => `₹${fmt(ctx.parsed.y ?? 0)}` } }
+      },
+      scales: {
+        y: { beginAtZero: true, ticks: { callback: (v: any) => `₹${fmt(v)}` } },
+        x: { ticks: { maxRotation: 45, font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+// ── Stats bar ────────────────────────────────────────────
+function updateStats(data: any[]) {
+  const bar     = document.getElementById('statsBar')!;
+  const prices  = data.map((d: any) => Number(d.modal_price || d.modalPrice || d.price || 0)).filter(Boolean);
+  const crops   = new Set(data.map((d: any) => d.commodity || d.crop)).size;
+  const markets = new Set(data.map((d: any) => d.market)).size;
+  const avg     = prices.length ? prices.reduce((a, b) => a + b, 0) / prices.length : 0;
+  const hi      = prices.length ? Math.max(...prices) : 0;
+  const lo      = prices.length ? Math.min(...prices) : 0;
+
+  document.getElementById('statCrops')!.textContent   = String(crops);
+  document.getElementById('statMarkets')!.textContent = String(markets);
+  document.getElementById('statAvg')!.textContent     = `₹${fmt(avg)}`;
+  document.getElementById('statHigh')!.textContent    = `₹${fmt(hi)}`;
+  document.getElementById('statLow')!.textContent     = `₹${fmt(lo)}`;
+  bar.removeAttribute('hidden');
+}
+
+// ── Download CSV ─────────────────────────────────────────
+function downloadCSV() {
+  if (!allData.length) return;
+  const header = 'Crop,Market,Min Price,Max Price,Modal Price';
+  const rows   = allData.map((d: any) =>
+    [d.commodity || d.crop, d.market, d.min_price || d.minPrice, d.max_price || d.maxPrice, d.modal_price || d.modalPrice || d.price]
+      .map(v => `"${String(v ?? '').replace(/"/g, '""')}"`)
+      .join(',')
+  );
+  const csv = [header, ...rows].join('\n');
+  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  const a = document.createElement('a');
+  a.href = url; a.download = 'farm-prices.csv'; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 3000);
+  showToast('CSV downloaded!', 'success');
+}
+
+// ── Price alert ──────────────────────────────────────────
+function setAlert() {
+  const crop  = alertCrop.value.trim();
+  const price = parseFloat(alertPrice.value);
+  if (!crop)             { showToast('Please select a crop first.', 'error'); return; }
+  if (isNaN(price) || price <= 0) { showToast('Enter a valid price above ₹0.', 'error'); return; }
+  alertMsg.textContent = `✅ Alert set: notify when ${crop} ≥ ₹${fmt(price)}.`;
+  showToast(`Alert set for ${crop} at ₹${fmt(price)}`, 'success');
+}
+
+// ── Event listeners ──────────────────────────────────────
+loadBtn.addEventListener('click', loadPrices);
+downloadBtn.addEventListener('click', downloadCSV);
+setAlertBtn.addEventListener('click', setAlert);
+cropFilter.addEventListener('change',   () => displayPrices(allData));
+marketFilter.addEventListener('change', () => displayPrices(allData));
+searchInput.addEventListener('input',   () => displayPrices(allData));
+
+document.addEventListener('DOMContentLoaded', loadPrices);
+
+// ── PWA install prompt ───────────────────────────────────
+let deferredPrompt: any;
+const installBtn = document.getElementById('installBtn')!;
+window.addEventListener('beforeinstallprompt', (e: Event) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  installBtn.removeAttribute('hidden');
+});
+installBtn.addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  if (outcome === 'accepted') showToast('App installed!', 'success');
+  deferredPrompt = null;
+  installBtn.setAttribute('hidden', '');
+});
+window.addEventListener('appinstalled', () => {
+  showToast('App installed successfully!', 'success');
+  installBtn.setAttribute('hidden', '');
+});
+</script>
