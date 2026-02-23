@@ -1,5 +1,7 @@
 [build]
-  publish = "static"
+  # Build the Astro frontend and publish generated static files
+  command = "cd frontend && npm install && npm run build"
+  publish = "frontend/dist"
 
 [context.production.environment]
 # Set `BACKEND_URL` to your backend host (example: api.example.com)
