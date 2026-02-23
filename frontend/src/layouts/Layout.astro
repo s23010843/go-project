@@ -36,12 +36,12 @@ const { title = 'Farm Market Prices', description = 'Real-time farm market price
   <slot />
 
   <!-- Footer -->
-  <footer class="site-footer">
+  <footer class="site-footer" role="contentinfo" aria-label="Site footer">
     <div class="footer-inner">
       <span>🌾 Farm Market Price Portal</span>
-      <span class="footer-sep">|</span>
+      <span class="footer-sep" aria-hidden="true">&nbsp;|&nbsp;</span>
       <span>Data updated daily</span>
-      <span class="footer-sep">|</span>
+      <span class="footer-sep" aria-hidden="true">&nbsp;|&nbsp;</span>
       <span>Made with ❤️ for farmers</span>
     </div>
   </footer>
@@ -53,6 +53,68 @@ const { title = 'Farm Market Prices', description = 'Real-time farm market price
         navigator.serviceWorker.register('/sw.js').catch(() => {});
       });
     }
+  </script>
+
+  <!-- Cookie consent banner + minimal toast helper -->
+  <div id="cookieBanner" class="cookie-banner" aria-live="polite" style="display:none">
+    <div class="cookie-inner">
+      <div class="cookie-text">We use cookies for a better experience. You can enable or disable them.</div>
+      <div class="cookie-actions">
+        <button id="enableCookiesBtn" class="btn">Enable</button>
+        <button id="disableCookiesBtn" class="btn btn-secondary">Disable</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Minimal toast helper (pages may provide #toastContainer; create if missing)
+    function _getToastContainer() {
+      let c = document.getElementById('toastContainer');
+      if (!c) {
+        c = document.createElement('div');
+        c.id = 'toastContainer';
+        c.className = 'toast-container';
+        c.setAttribute('role','status');
+        c.setAttribute('aria-live','polite');
+        document.body.appendChild(c);
+      }
+      return c;
+    }
+
+    function createToast(msg, type = 'info', duration = 3200) {
+      const container = _getToastContainer();
+      const t = document.createElement('div');
+      t.className = `toast ${type}`;
+      t.setAttribute('role', 'alert');
+      t.textContent = msg;
+      container.appendChild(t);
+      setTimeout(() => {
+        t.classList.add('removing');
+        t.addEventListener('animationend', () => t.remove(), { once: true });
+      }, duration);
+    }
+
+    function setCookieConsent(enabled) {
+      const val = enabled ? '1' : '0';
+      const expires = new Date(Date.now() + 365*24*60*60*1000).toUTCString();
+      document.cookie = `cookie_consent=${val}; path=/; expires=${expires}; SameSite=Lax`;
+      document.getElementById('cookieBanner').style.display = 'none';
+      createToast(enabled ? 'Cookies enabled' : 'Cookies disabled', enabled ? 'success' : 'info');
+    }
+
+    function readCookieConsent() {
+      const m = document.cookie.match(/(?:^|; )cookie_consent=([^;]+)/);
+      return m ? m[1] : null;
+    }
+
+    window.addEventListener('load', () => {
+      const consent = readCookieConsent();
+      if (consent === null) {
+        document.getElementById('cookieBanner').style.display = '';
+      }
+      document.getElementById('enableCookiesBtn').addEventListener('click', () => setCookieConsent(true));
+      document.getElementById('disableCookiesBtn').addEventListener('click', () => setCookieConsent(false));
+    });
   </script>
 </body>
 </html>
