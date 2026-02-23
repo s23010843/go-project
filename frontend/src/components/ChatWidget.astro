@@ -43,27 +43,34 @@ import BotSvg from './BotSvg.astro';
 
 <script>
 // ── Eye tracking ──────────────────────────────────────────
-function initEyeTracking(prefix: string, maxR = 2.2) {
+function initEyeTracking(prefix, maxR = 2.2) {
   const pupilL = document.getElementById(`${prefix}-pupil-l`);
   const pupilR = document.getElementById(`${prefix}-pupil-r`);
   const glintL = document.getElementById(`${prefix}-glint-l`);
   const glintR = document.getElementById(`${prefix}-glint-r`);
   if (!pupilL || !pupilR) return;
 
-  const getSvgEl = () => pupilL.closest('svg') as SVGSVGElement | null;
+  const getSvgEl = () => pupilL.closest('svg');
 
   const BASE = {
     lx: 23, ly: 35, rx: 41, ry: 35,
     glx: 24.5, gly: 33, grx: 42.5, gry: 33,
   };
 
-  function move(e: MouseEvent | TouchEvent) {
+  function move(e) {
     const svg = getSvgEl(); if (!svg) return;
     const rect = svg.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
-    const px = (e instanceof TouchEvent) ? e.touches[0].clientX : e.clientX;
-    const py = (e instanceof TouchEvent) ? e.touches[0].clientY : e.clientY;
+    let px, py;
+    // Prefer touch coordinates when available; avoid referencing TouchEvent directly
+    if (e && 'touches' in e && e.touches && e.touches.length) {
+      px = e.touches[0].clientX;
+      py = e.touches[0].clientY;
+    } else {
+      px = e.clientX;
+      py = e.clientY;
+    }
     const angle = Math.atan2(py - cy, px - cx);
     const cos = Math.cos(angle), sin = Math.sin(angle);
 
