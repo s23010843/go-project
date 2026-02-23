@@ -1,0 +1,65 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background: #f4f8f2;
+    text-align: center;
+}
+
+header {
+    background: #2e7d32;
+    color: white;
+    padding: 20px;
+}
+
+.controls {
+    margin: 20px;
+}
+
+input, select, button {
+    padding: 10px;
+    margin: 5px;
+}
+
+button {
+    background: #2e7d32;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #1b5e20;
+}
+
+table {
+    width: 90%;
+    margin: 20px auto;
+    border-collapse: collapse;
+    background: white;
+}
+
+th, td {
+    padding: 12px;
+    border: 1px solid #ddd;
+}
+
+th {
+    background: #e8f5e9;
+}
+
+.highest {
+    background: #c8e6c9;
+    font-weight: bold;
+}
+
+.lowest {
+    background: #ffcdd2;
+}
+
+.alert-box {
+    background: white;
+    padding: 20px;
+    width: 300px;
+    margin: 20px auto;
+    border-radius: 8px;
+}

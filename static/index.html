@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Farm Market Price Portal</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<header>
+    <h1>🌾 Farm Market Price Portal</h1>
+    <p>Check latest crop prices across markets</p>
+</header>
+
+<div class="controls">
+    <input type="text" id="searchInput" placeholder="Search crop...">
+    
+    <select id="marketSelect">
+        <option value="">All Markets</option>
+        <option value="Central">Central</option>
+        <option value="North">North</option>
+        <option value="South">South</option>
+    </select>
+
+    <button onclick="filterPrices()">Filter</button>
+</div>
+
+<table id="priceTable">
+    <thead>
+        <tr>
+            <th>Crop</th>
+            <th>Market</th>
+            <th>Price (₹)</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<h2>📊 Price Comparison</h2>
+<canvas id="priceChart"></canvas>
+
+<button onclick="downloadCSV()">Download CSV</button>
+
+<div class="alert-box">
+    <h3>🔔 Set Price Alert</h3>
+    <input type="number" id="alertPrice" placeholder="Enter target price">
+    <button onclick="setAlert()">Set Alert</button>
+    <p id="alertMessage"></p>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

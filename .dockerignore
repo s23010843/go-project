@@ -1,0 +1,12 @@
+**/.git
+**/.github
+**/node_modules
+**/.DS_Store
+*.log
+tmp/
+*.tmp
+bin/
+dist/
+*.md
+README.md
+LICENSE
