@@ -136,8 +136,10 @@ function showToast(msg: string, type: 'info' | 'success' | 'error' = 'info', dur
 }
 
 // ── State ────────────────────────────────────────────────
+// Chart.js is loaded from CDN (UMD). Declare global for TS.
+declare var Chart: any;
 let allData: any[] = [];
-let chart: Chart | null = null;
+let chart: any = null;
 
 // ── DOM refs ─────────────────────────────────────────────
 const cropFilter   = document.getElementById('cropFilter')   as HTMLSelectElement;
@@ -302,7 +304,7 @@ function updateChart(data: any[]) {
       maintainAspectRatio: true,
       plugins: {
         legend: { display: false },
-        tooltip: { callbacks: { label: ctx => `₹${fmt(ctx.parsed.y ?? 0)}` } }
+        tooltip: { callbacks: { label: (ctx: any) => `₹${fmt(ctx.parsed?.y ?? 0)}` } }
       },
       scales: {
         y: { beginAtZero: true, ticks: { callback: (v: any) => `₹${fmt(v)}` } },
