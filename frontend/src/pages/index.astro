@@ -160,15 +160,21 @@ async function loadPrices() {
   loadBtn.textContent = 'Loading…';
 
   try {
-    // Try backend API first, fall back to packaged `prices.json` for static deploys
-    let res = await fetch('/api/prices');
-    if (!res.ok) {
-      try {
-        res = await fetch('/prices.json');
-      } catch (e) {
-        throw new Error(`HTTP ${res.status}`);
-      }
+    // First attempt the backend API. If it fails (network error or non-2xx),
+    // fall back to the packaged `/prices.json` so static hosts still work.
+    let res: Response | null = null;
+    try {
+      res = await fetch('/api/prices');
+    } catch (e) {
+      // network error — we'll try the bundled file below
+      res = null;
     }
+
+    if (!res || !res.ok) {
+      res = await fetch('/prices.json');
+    }
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     allData = Array.isArray(data) ? data : (data?.prices || data || []);
 
