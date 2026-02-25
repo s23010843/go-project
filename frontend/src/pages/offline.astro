@@ -4,7 +4,7 @@ import BotSvg from '../components/BotSvg.astro';
 ---
 <Layout title="You're Offline — Farm Market Prices" page="offline">
   <div class="offline-bg">
-    <video id="bg-video" autoplay muted loop playsinline preload="auto" poster="/assets/videos/agriculture-environment.mp4">
+    <video id="bg-video" muted loop playsinline preload="auto" poster="/assets/videos/agriculture-environment.mp4" aria-hidden="true">
       <source src="/assets/videos/agriculture-environment.mp4" type="video/mp4" />
     </video>
     <div class="bg-overlay" aria-hidden="true"></div>
@@ -27,7 +27,7 @@ import BotSvg from '../components/BotSvg.astro';
           <BotSvg idPrefix="bot-offline" size={90} />
         </div>
         <h2 style="font-size:1.5rem; color:#1b5e20; margin-bottom:8px">You're Offline</h2>
-        <p style="color:#607060; font-size:.93rem; line-height:1.7; margin-bottom:20px">
+        <p style="color:var(--muted); font-size:.93rem; line-height:1.7; margin-bottom:20px">
           No internet connection detected. You can still access cached data.
         </p>
 
@@ -42,7 +42,7 @@ import BotSvg from '../components/BotSvg.astro';
         </div>
 
         <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap">
-          <button id="retryBtn" style="padding:10px 24px; background:#2e7d32; color:#fff; border-radius:8px; border:none; font-weight:600; cursor:pointer; font-size:.93rem">
+          <button id="retryBtn" type="button" aria-label="Retry loading the site" style="padding:10px 24px; background:#2e7d32; color:#fff; border-radius:8px; border:none; font-weight:600; cursor:pointer; font-size:.93rem">
             🔄 Try Again
           </button>
           <a href="/" style="display:inline-block; padding:10px 24px; background:#e8f5e9; color:#1b5e20; border:1px solid #c8e6c9; border-radius:8px; text-decoration:none; font-weight:600; font-size:.93rem">
@@ -60,7 +60,8 @@ window.addEventListener('online', () => {
   document.getElementById('retryBtn')!.textContent = '✅ Back online! Reloading…';
   setTimeout(() => window.location.reload(), 800);
 });
-document.getElementById('retryBtn')!.addEventListener('click', () => window.location.reload());
+const _retry = document.getElementById('retryBtn');
+if (_retry) _retry.addEventListener('click', () => window.location.reload());
 
 // Eye tracking
 (function() {
@@ -86,4 +87,12 @@ document.getElementById('retryBtn')!.addEventListener('click', () => window.loca
     glintR!.setAttribute('cy', String(BASE.gry + sin * maxR));
   }, { passive: true });
 })();
+</script>
+
+<script>
+// Focus retry button for keyboard users
+document.addEventListener('DOMContentLoaded', () => {
+  const r = document.getElementById('retryBtn');
+  if (r) try { (r as HTMLElement).focus(); } catch (e) {}
+});
 </script>

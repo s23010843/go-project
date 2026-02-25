@@ -4,7 +4,7 @@ import BotSvg from '../components/BotSvg.astro';
 ---
 <Layout title="Page Not Found — Farm Market Prices" page="404">
   <div class="offline-bg">
-    <video id="bg-video" autoplay muted loop playsinline preload="auto" poster="/assets/videos/agriculture-environment.mp4">
+    <video id="bg-video" muted loop playsinline preload="auto" poster="/assets/videos/agriculture-environment.mp4" aria-hidden="true">
       <source src="/assets/videos/agriculture-environment.mp4" type="video/mp4" />
     </video>
     <div class="bg-overlay" aria-hidden="true"></div>
@@ -28,11 +28,11 @@ import BotSvg from '../components/BotSvg.astro';
           <span style="position:absolute; top:-6px; right:-10px; background:#ef5350; color:#fff; border-radius:50%; width:28px; height:28px; font-size:.85rem; font-weight:700; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,.2)">?</span>
         </div>
         <h2 style="font-size:1.6rem; color:#1b5e20; margin-bottom:8px">Page Not Found</h2>
-        <p style="color:#607060; font-size:.95rem; line-height:1.7; margin-bottom:24px">
+        <p style="color:var(--muted); font-size:.95rem; line-height:1.7; margin-bottom:24px">
           Oops! The page you're looking for has wandered off into the fields.<br>
           Let's get you back to safety.
         </p>
-        <a href="/" style="display:inline-block; padding:10px 28px; background:#2e7d32; color:#fff; border-radius:8px; text-decoration:none; font-weight:600; font-size:.93rem">
+        <a href="/" style="display:inline-block; padding:10px 28px; background:#2e7d32; color:#fff; border-radius:8px; text-decoration:none; font-weight:600; font-size:.93rem" aria-label="Back to homepage">
           🌾 Back to Home
         </a>
       </div>
@@ -65,4 +65,9 @@ import BotSvg from '../components/BotSvg.astro';
     glintR!.setAttribute('cy', String(BASE.gry + sin * maxR));
   }, { passive: true });
 })();
+// Focus primary action for keyboard users
+document.addEventListener('DOMContentLoaded', () => {
+  const action = document.querySelector('a[aria-label="Back to homepage"]') as HTMLElement | null;
+  if (action) action.focus();
+});
 </script>

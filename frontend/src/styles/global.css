@@ -8,7 +8,7 @@
   --red-100:    #ffcdd2;
   --border:      #d4e5d5;
   --text:        #1c2b1d;
-  --muted:       #607060;
+  --muted:       #3e4b3e;
   --radius:      10px;
   --shadow:      0 2px 12px rgba(30,90,35,.10);
   --transition:  .18s ease;
@@ -312,6 +312,8 @@ tbody tr:hover td { background: #f5fbf5; }
 /* ── Reduced-motion ───────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  /* Reduce motion: hide background video to avoid motion for sensitive users */
+  .bg-video { display: none !important; }
 }
 
 /* ── Print ────────────────────────────────────────────── */

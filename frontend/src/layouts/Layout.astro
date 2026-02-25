@@ -57,6 +57,25 @@ const { title = 'Farm Market Prices', description = 'Real-time farm market price
     }
   </script>
 
+  <script>
+    // Respect users' reduced-motion preference: pause/hide background videos
+    try {
+      const mq = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
+      if (mq && mq.matches) {
+        const vids = document.querySelectorAll('video.bg-video, video#bg-video, .offline-bg video');
+        vids.forEach(v => {
+          try {
+            // Pause playback, remove autoplay, hide visually and from assistive tech
+            (v as HTMLVideoElement).pause();
+            v.removeAttribute('autoplay');
+            v.style.display = 'none';
+            v.setAttribute('aria-hidden', 'true');
+          } catch (e) {}
+        });
+      }
+    } catch (e) { /* noop */ }
+  </script>
+
   <!-- Minimal toast helper (pages may provide #toastContainer; create if missing) -->
   <script>
     function _getToastContainer(): HTMLElement {
@@ -67,6 +86,7 @@ const { title = 'Farm Market Prices', description = 'Real-time farm market price
         c.className = 'toast-container';
         c.setAttribute('role','status');
         c.setAttribute('aria-live','polite');
+        c.setAttribute('aria-atomic','true');
         document.body.appendChild(c);
       }
       return c;
@@ -76,7 +96,14 @@ const { title = 'Farm Market Prices', description = 'Real-time farm market price
       const container = _getToastContainer();
       const t = document.createElement('div');
       t.className = `toast ${type}`;
-      t.setAttribute('role', 'alert');
+      // Use assertive announcements for errors, polite otherwise
+      if (type === 'error') {
+        t.setAttribute('role', 'alert');
+        t.setAttribute('aria-live', 'assertive');
+      } else {
+        t.setAttribute('role', 'status');
+        t.setAttribute('aria-live', 'polite');
+      }
       t.textContent = msg;
       container.appendChild(t);
       setTimeout(() => {

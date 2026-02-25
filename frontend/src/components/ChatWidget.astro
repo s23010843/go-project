@@ -14,13 +14,14 @@ import BotSvg from './BotSvg.astro';
 </button>
 
 <!-- Chat Widget Panel -->
-<aside class="chat-widget" id="chatWidget" role="dialog" aria-label="Chat assistant" aria-modal="true">
+<aside class="chat-widget" id="chatWidget" role="dialog" aria-labelledby="chatTitle" aria-hidden="true" tabindex="-1">
+
   <div class="chat-widget-header">
     <div class="chat-widget-title">
       <span class="chat-header-icon">
         <BotSvg idPrefix="bot-hdr" size={28} />
       </span>
-      <span>FarmBot Assistant</span>
+      <span id="chatTitle">FarmBot Assistant</span>
     </div>
     <button class="chat-close-btn" id="chatClose" aria-label="Close chat">
       <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
@@ -42,8 +43,7 @@ import BotSvg from './BotSvg.astro';
 </aside>
 
 <script>
-// ── Eye tracking ──────────────────────────────────────────
-function initEyeTracking(prefix: string, maxR = 2.2) {
+function initEyeTracking(prefix, maxR = 2.2) {
   const pupilL = document.getElementById(`${prefix}-pupil-l`);
   const pupilR = document.getElementById(`${prefix}-pupil-r`);
   const glintL = document.getElementById(`${prefix}-glint-l`);
@@ -52,18 +52,14 @@ function initEyeTracking(prefix: string, maxR = 2.2) {
 
   const getSvgEl = () => pupilL.closest('svg');
 
-  const BASE = {
-    lx: 23, ly: 35, rx: 41, ry: 35,
-    glx: 24.5, gly: 33, grx: 42.5, gry: 33,
-  };
+  const BASE = { lx: 23, ly: 35, rx: 41, ry: 35, glx: 24.5, gly: 33, grx: 42.5, gry: 33 };
 
-  function move(e: any) {
+  function move(e) {
     const svg = getSvgEl(); if (!svg) return;
     const rect = svg.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
     let px, py;
-    // Prefer touch coordinates when available; avoid referencing TouchEvent directly
     if (e && 'touches' in e && e.touches && e.touches.length) {
       px = e.touches[0].clientX;
       py = e.touches[0].clientY;
@@ -74,14 +70,12 @@ function initEyeTracking(prefix: string, maxR = 2.2) {
     const angle = Math.atan2(py - cy, px - cx);
     const cos = Math.cos(angle), sin = Math.sin(angle);
 
-    pupilL!.setAttribute('cx', String(BASE.lx + cos * maxR));
-    pupilL!.setAttribute('cy', String(BASE.ly + sin * maxR));
-    pupilR!.setAttribute('cx', String(BASE.rx + cos * maxR));
-    pupilR!.setAttribute('cy', String(BASE.ry + sin * maxR));
-    glintL!.setAttribute('cx', String(BASE.glx + cos * maxR));
-    glintL!.setAttribute('cy', String(BASE.gly + sin * maxR));
-    glintR!.setAttribute('cx', String(BASE.grx + cos * maxR));
-    glintR!.setAttribute('cy', String(BASE.gry + sin * maxR));
+    pupilL.setAttribute('cx', String(BASE.lx + cos * maxR));
+    pupilL.setAttribute('cy', String(BASE.ly + sin * maxR));
+    pupilR.setAttribute('cx', String(BASE.rx + cos * maxR));
+    pupilR.setAttribute('cy', String(BASE.ry + sin * maxR));
+    if (glintL) { glintL.setAttribute('cx', String(BASE.glx + cos * maxR)); glintL.setAttribute('cy', String(BASE.gly + sin * maxR)); }
+    if (glintR) { glintR.setAttribute('cx', String(BASE.grx + cos * maxR)); glintR.setAttribute('cy', String(BASE.gry + sin * maxR)); }
   }
 
   window.addEventListener('mousemove', move, { passive: true });
@@ -91,28 +85,24 @@ function initEyeTracking(prefix: string, maxR = 2.2) {
 initEyeTracking('bot-fab');
 initEyeTracking('bot-hdr');
 
-// ── Chat widget ───────────────────────────────────────────
-const fab    = document.getElementById('chatFab');
+// Chat widget
+const fab = document.getElementById('chatFab');
 const widget = document.getElementById('chatWidget');
 const closeBtn = document.getElementById('chatClose');
 const chatWindow = document.getElementById('chatWindow');
-const chatInput  = document.getElementById('chatInput');
-const chatSend   = document.getElementById('chatSend');
+const chatInput = document.getElementById('chatInput');
+const chatSend = document.getElementById('chatSend');
 
-let intents: any[] = [];
-// If any core chat elements are missing, abort initialization silently.
+let intents = [];
 if (!fab || !widget || !closeBtn || !chatWindow || !chatInput || !chatSend) {
-  // leave a visible console note for debugging without throwing
   console.warn('ChatWidget: missing DOM elements, chat initialization skipped.');
 } else {
-  // wrap the chat init in a block so remaining code assumes elements exist
-  // create strongly-typed, non-null locals to satisfy TypeScript narrowing
-  const $fab = fab as HTMLElement;
-  const $widget = widget as HTMLElement;
-  const $closeBtn = closeBtn as HTMLElement;
-  const $chatWindow = chatWindow as HTMLElement;
-  const $chatInput = chatInput as HTMLInputElement;
-  const $chatSend = chatSend as HTMLElement;
+  const $fab = fab;
+  const $widget = widget;
+  const $closeBtn = closeBtn;
+  const $chatWindow = chatWindow;
+  const $chatInput = chatInput;
+  const $chatSend = chatSend;
 
   loadIntents();
 
@@ -120,71 +110,126 @@ if (!fab || !widget || !closeBtn || !chatWindow || !chatInput || !chatSend) {
     try {
       const res = await fetch('/intents.json');
       const data = await res.json();
-      // support both shapes: an array (legacy) or { intents: [...] }
-      const raw = Array.isArray(data) ? data : (data.intents ?? []);
-      intents = raw.map((it: any) => ({
-        patterns: it.patterns || [],
-        responses: it.replies ?? it.responses ?? []
-      }));
-    } catch { /* silent */ }
+      const raw = Array.isArray(data) ? data : (data.intents || []);
+      intents = raw.map(function(it) {
+        return { patterns: it.patterns || [], responses: it.replies || it.responses || [] };
+      });
+    } catch (e) { /* silent */ }
   }
 
-  function toggleChat(open?: boolean) {
-    const next = open !== undefined ? open : !$fab.classList.contains('is-open');
+  function getFocusable(container) {
+    const selector = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    return Array.from(container.querySelectorAll(selector)).filter(function(el) {
+      try { return el.offsetParent !== null; } catch (e) { return true; }
+    });
+  }
+
+  let _widgetKeyHandler = null;
+  function enableFocusTrap() {
+    if (_widgetKeyHandler) return;
+    _widgetKeyHandler = function(e) {
+      if (e.key !== 'Tab') return;
+      const focusable = getFocusable($widget);
+      if (!focusable.length) { e.preventDefault(); return; }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    };
+    $widget.addEventListener('keydown', _widgetKeyHandler);
+  }
+  function disableFocusTrap() {
+    if (!_widgetKeyHandler) return;
+    $widget.removeEventListener('keydown', _widgetKeyHandler);
+    _widgetKeyHandler = null;
+  }
+
+  let prevFocus = null;
+  function openChat() {
+    prevFocus = document.activeElement;
+    $widget.setAttribute('aria-hidden','false');
+    $fab.setAttribute('aria-expanded','true');
+    $widget.setAttribute('aria-modal','true');
+    $widget.removeAttribute('tabindex');
+    enableFocusTrap();
+    if (!$chatWindow.childElementCount) addBotMsg('👋 Hi! Ask me about crop prices, markets, or use the tools above.');
+    setTimeout(function(){ try { $chatInput.focus(); } catch (e) {} }, 220);
+  }
+  function closeChat() {
+    $widget.setAttribute('aria-hidden','true');
+    $fab.setAttribute('aria-expanded','false');
+    $widget.removeAttribute('aria-modal');
+    $widget.setAttribute('tabindex','-1');
+    disableFocusTrap();
+    if (prevFocus && prevFocus.focus) prevFocus.focus();
+  }
+  function toggleChat(open) {
+    var next = (open !== undefined) ? open : !$fab.classList.contains('is-open');
     $fab.classList.toggle('is-open', next);
     $widget.classList.toggle('is-open', next);
     $fab.setAttribute('aria-expanded', String(next));
+    $widget.setAttribute('aria-hidden', String(!next));
     if (next) {
+      $widget.setAttribute('aria-modal', 'true');
+      $widget.removeAttribute('tabindex');
+      enableFocusTrap();
       if (!$chatWindow.childElementCount) addBotMsg('👋 Hi! Ask me about crop prices, markets, or use the tools above.');
-      setTimeout(() => { try { $chatInput.focus(); } catch (e) {} }, 220);
+      setTimeout(function(){ try { $chatInput.focus(); } catch (e) {} }, 220);
+    } else {
+      $widget.removeAttribute('aria-modal');
+      $widget.setAttribute('tabindex','-1');
+      disableFocusTrap();
+      try { $fab.focus(); } catch (e) {}
     }
   }
 
-  $fab.addEventListener('click', () => toggleChat());
-  $closeBtn.addEventListener('click', () => toggleChat(false));
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') toggleChat(false); });
+  $fab.addEventListener('click', function(){ toggleChat(); });
+  $closeBtn.addEventListener('click', function(){ toggleChat(false); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') toggleChat(false); });
 
   $chatSend.addEventListener('click', sendMsg);
-  $chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendMsg(); });
+  $chatInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') sendMsg(); });
 
-function addMsg(text: string, who: 'user' | 'bot') {
-  const div = document.createElement('div');
-  div.className = `chat-message ${who}`;
-  div.textContent = text;
-  $chatWindow.appendChild(div);
-  $chatWindow.scrollTop = $chatWindow.scrollHeight;
-}
-function addBotMsg(text: string) { addMsg(text, 'bot'); }
-function addUserMsg(text: string) { addMsg(text, 'user'); }
+  function addMsg(text, who) {
+    const div = document.createElement('div');
+    div.className = 'chat-message ' + who;
+    div.textContent = text;
+    $chatWindow.appendChild(div);
+    $chatWindow.scrollTop = $chatWindow.scrollHeight;
+  }
+  function addBotMsg(text) { addMsg(text, 'bot'); }
+  function addUserMsg(text) { addMsg(text, 'user'); }
 
-function sendMsg() {
-  const raw = $chatInput.value.trim(); if (!raw) return;
-  addUserMsg(raw);
-  $chatInput.value = '';
-  const reply = getReply(raw.toLowerCase());
-  setTimeout(() => addBotMsg(reply), 320);
-}
+  function sendMsg() {
+    const raw = $chatInput.value.trim(); if (!raw) return;
+    addUserMsg(raw);
+    $chatInput.value = '';
+    const reply = getReply(raw.toLowerCase());
+    setTimeout(function(){ addBotMsg(reply); }, 320);
+  }
 
-function getReply(q: string): string {
-  const defaultReply = "I'm not sure about that. Try asking about crop prices, markets, or how to download data!";
-  for (const intent of intents) {
-    for (const pattern of intent.patterns) {
-      try {
-        const re = new RegExp(pattern, 'i');
-        if (re.test(q)) {
-          const responses = intent.responses || [];
-          return responses[Math.floor(Math.random() * responses.length)] || defaultReply;
-        }
-      } catch (e) {
-        // fallback to simple substring match when pattern isn't a valid regex
-        if (typeof pattern === 'string' && q.includes(pattern.toLowerCase())) {
-          const responses = intent.responses || [];
-          return responses[Math.floor(Math.random() * responses.length)] || defaultReply;
+  function getReply(q) {
+    const defaultReply = "I'm not sure about that. Try asking about crop prices, markets, or how to download data!";
+    for (let i = 0; i < intents.length; i++) {
+      const intent = intents[i];
+      const pats = intent.patterns || [];
+      for (let j = 0; j < pats.length; j++) {
+        const pattern = pats[j];
+        try {
+          const re = new RegExp(pattern, 'i');
+          if (re.test(q)) {
+            const responses = intent.responses || [];
+            return responses[Math.floor(Math.random() * responses.length)] || defaultReply;
+          }
+        } catch (e) {
+          if (typeof pattern === 'string' && q.includes(pattern.toLowerCase())) {
+            const responses = intent.responses || [];
+            return responses[Math.floor(Math.random() * responses.length)] || defaultReply;
+          }
         }
       }
     }
+    return defaultReply;
   }
-  return defaultReply;
-}
 }
 </script>
