@@ -65,11 +65,12 @@ const { title = 'Farm Market Prices', description = 'Real-time farm market price
         const vids = document.querySelectorAll('video.bg-video, video#bg-video, .offline-bg video');
         vids.forEach(v => {
           try {
-            // Pause playback, remove autoplay, hide visually and from assistive tech
-            (v as HTMLVideoElement).pause();
-            v.removeAttribute('autoplay');
-            v.style.display = 'none';
-            v.setAttribute('aria-hidden', 'true');
+            // Narrow to HTMLVideoElement for media control, and HTMLElement for style
+            const videoEl = v as HTMLVideoElement;
+            videoEl.pause();
+            videoEl.removeAttribute('autoplay');
+            (videoEl as HTMLElement).style.display = 'none';
+            videoEl.setAttribute('aria-hidden', 'true');
           } catch (e) {}
         });
       }

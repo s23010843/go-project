@@ -6,7 +6,7 @@
      • Offline navigation  → serve cached page or /offline.html
    ─────────────────────────────────────────────────────────────────────── */
 
-const VERSION   = 'v3';
+const VERSION   = 'v4';
 const CACHE     = 'farm-market-' + VERSION;
 const OFFLINE   = '/offline.html';
 

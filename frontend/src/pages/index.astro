@@ -47,6 +47,13 @@ import ChatWidget from '../components/ChatWidget.astro';
             <option value="">All Markets</option>
           </select>
 
+          <label for="currencySelect" class="sr-only">Display currency</label>
+          <select id="currencySelect" aria-label="Display currency">
+            <option value="INR">India — Indian Rupee (₹)</option>
+            <option value="USD">America — US Dollar ($)</option>
+            <option value="LKR">Sri Lanka — Sri Lankan Rupee (LKR)</option>
+          </select>
+
           <label for="searchInput" class="sr-only">Search prices</label>
           <input type="text" id="searchInput" placeholder="Search crop or market…" aria-label="Search" />
 
@@ -65,9 +72,9 @@ import ChatWidget from '../components/ChatWidget.astro';
               <tr>
                 <th scope="col">Crop</th>
                 <th scope="col">Market</th>
-                <th scope="col">Min (₹)</th>
-                <th scope="col">Max (₹)</th>
-                <th scope="col">Modal (₹)</th>
+                <th scope="col">Min (<span id="currencyLabel">₹</span>)</th>
+                <th scope="col">Max (<span id="currencyLabelMax">₹</span>)</th>
+                <th scope="col">Modal (<span id="currencyLabelModal">₹</span>)</th>
               </tr>
             </thead>
             <tbody id="priceBody">
@@ -108,8 +115,8 @@ import ChatWidget from '../components/ChatWidget.astro';
           <select id="alertCrop" aria-label="Select crop for alert">
             <option value="">Select crop…</option>
           </select>
-          <label for="alertPrice" class="sr-only">Alert price in ₹</label>
-          <input type="number" id="alertPrice" placeholder="Alert price (₹)" min="0" step="0.01" aria-label="Alert threshold price" />
+          <label for="alertPrice" class="sr-only">Alert price</label>
+          <input type="number" id="alertPrice" placeholder="Alert price" min="0" step="0.01" aria-label="Alert threshold price" />
           <button id="setAlertBtn" type="button">Set Alert</button>
         </div>
         <p id="alertMessage" role="status" aria-live="polite"></p>
@@ -127,10 +134,16 @@ import ChatWidget from '../components/ChatWidget.astro';
 
   <script>
 
-// ── Helpers ──────────────────────────────────────────────
-const fmt = n => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(n);
+// ── Helpers & Currency ───────────────────────────────────
+const currencyLocales = { INR: 'en-IN', USD: 'en-US', LKR: 'en-LK' };
+const currencySymbols = { INR: '₹', USD: '$', LKR: 'LKR' };
+let selectedCurrency = (localStorage.getItem('displayCurrency') || 'INR');
+let rates = { INR: 1 }; // rates relative to INR (base INR)
+let ratesUpdatedAt = null;
 
-function showToast(msg, type = 'info', duration = 3500) {
+const fmt = (n: number | string) => new Intl.NumberFormat(currencyLocales[selectedCurrency] || 'en-IN', { style: 'currency', currency: selectedCurrency, maximumFractionDigits: 2 }).format(Number(n) || 0);
+
+function showToast(msg: string, type: 'info' | 'success' | 'error' = 'info', duration = 3500): void {
   const container = document.getElementById('toastContainer');
   if (!container) return;
   const t = document.createElement('div');
@@ -145,8 +158,12 @@ function showToast(msg, type = 'info', duration = 3500) {
 }
 
 // ── State ────────────────────────────────────────────────
-let allData = [];
-let chart = null;
+  // Price record shape (for reference)
+  // const PriceRecord = { commodity, crop, market, min_price, max_price, modal_price }
+  let allData = [];
+  let chart = null;
+  // Chart is provided by the CDN script
+  // (we avoid declaring TypeScript types here so the browser receives plain JS)
 
 // ── DOM refs ─────────────────────────────────────────────
 const cropFilter = document.getElementById('cropFilter');
@@ -160,10 +177,44 @@ const alertCrop = document.getElementById('alertCrop');
 const alertPrice = document.getElementById('alertPrice');
 const setAlertBtn = document.getElementById('setAlertBtn');
 const alertMsg = document.getElementById('alertMessage');
+const currencySelect = document.getElementById('currencySelect');
+const currencyLabelEl = document.getElementById('currencyLabel');
+const currencyLabelElMax = document.getElementById('currencyLabelMax');
+const currencyLabelElModal = document.getElementById('currencyLabelModal');
+
+function convert(inrValue) {
+  const v = Number(inrValue) || 0;
+  const r = rates[selectedCurrency] ?? (selectedCurrency === 'INR' ? 1 : 1);
+  return v * r;
+}
+
+async function loadRates() {
+  try {
+    const syms = Object.keys(currencyLocales).join(',');
+    const res = await fetch(`https://api.exchangerate.host/latest?base=INR&symbols=${syms}`);
+    if (!res.ok) throw new Error('rate fetch failed');
+    const j = await res.json();
+    // ensure INR present
+    rates = Object.assign({ INR: 1 }, j.rates || {});
+    ratesUpdatedAt = j.date || new Date().toISOString();
+    setCurrencyLabels();
+  } catch (e) {
+    showToast('Could not fetch live exchange rates — using cached values.', 'error');
+  }
+}
+
+function setCurrencyLabels() {
+  const sym = currencySymbols[selectedCurrency] || selectedCurrency;
+  if (currencyLabelEl) currencyLabelEl.textContent = sym;
+  if (currencyLabelElMax) currencyLabelElMax.textContent = sym;
+  if (currencyLabelElModal) currencyLabelElModal.textContent = sym;
+  if (alertPrice) alertPrice.placeholder = `Alert price (${selectedCurrency})`;
+  if (currencySelect) currencySelect.value = selectedCurrency;
+}
 
 // ── Load prices ──────────────────────────────────────────
 async function loadPrices() {
-  if (loadBtn) { loadBtn.setAttribute('disabled', ''); loadBtn.textContent = 'Loading…'; }
+  if (loadBtn) { loadBtn.disabled = true; loadBtn.textContent = 'Loading…'; }
 
   try {
     let res = null;
@@ -222,14 +273,14 @@ async function loadPrices() {
     if (priceBody) priceBody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-state-icon">⚠️</div><p><strong>Could not load prices.</strong><br>Check your connection and try again.</p></div></td></tr>`;
     showToast('Failed to load prices. Please try again.', 'error');
   } finally {
-    if (loadBtn) { loadBtn.removeAttribute('disabled'); loadBtn.textContent = 'Load Prices'; }
+    if (loadBtn) { loadBtn.disabled = false; loadBtn.textContent = 'Load Prices'; }
   }
 }
 
 // ── Populate filter selects ──────────────────────────────
 function populateFilters(data) {
-  const crops = [...new Set(data.map(d => d.commodity || d.crop))].sort();
-  const markets = [...new Set(data.map(d => d.market))].sort();
+  const crops = [...new Set(data.map(d => d.commodity || d.crop))].filter(Boolean).sort();
+  const markets = [...new Set(data.map(d => d.market))].filter(Boolean).sort();
 
   function setOptions(sel, vals, label) {
     if (!sel) return;
@@ -248,11 +299,11 @@ function populateFilters(data) {
 
 // ── Display table ────────────────────────────────────────
 function displayPrices(data) {
-  const crop = (cropFilter && cropFilter.value || '').toLowerCase();
-  const market = (marketFilter && marketFilter.value || '').toLowerCase();
-  const search = (searchInput && searchInput.value || '').toLowerCase();
+  const crop = (cropFilter?.value || '').toLowerCase();
+  const market = (marketFilter?.value || '').toLowerCase();
+  const search = (searchInput?.value || '').toLowerCase();
 
-  const filtered = data.filter((d) => {
+  const filtered = data.filter(d => {
     const c = (d.commodity || d.crop || '').toLowerCase();
     const m = (d.market || '').toLowerCase();
     return (!crop || c === crop)
@@ -260,32 +311,48 @@ function displayPrices(data) {
       && (!search || c.includes(search) || m.includes(search));
   });
 
-  filterHint.textContent = (search || crop || market)
+  if (filterHint) filterHint.textContent = (search || crop || market)
     ? `Showing ${filtered.length} of ${data.length} records`
     : '';
 
   if (!filtered.length) {
-    priceBody.innerHTML = `<tr><td colspan="5"><div class="empty-state" role="status" aria-live="polite"><div class="empty-state-icon">🔍</div><p>No results match your filters.<br><small>Try changing or clearing the filters above.</small></p><p><button type="button" class="btn-secondary" onclick="document.getElementById('cropFilter').value='';document.getElementById('marketFilter').value='';document.getElementById('searchInput').value='';displayPrices(allData);">Clear filters</button></p></div></td></tr>`;
+    if (priceBody) priceBody.innerHTML = `<tr><td colspan="5"><div class="empty-state" role="status" aria-live="polite"><div class="empty-state-icon">🔍</div><p>No results match your filters.<br><small>Try changing or clearing the filters above.</small></p><p><button type="button" class="btn-secondary" id="clearFiltersBtn">Clear filters</button></p></div></td></tr>`;
+    // attach clear handler
+    setTimeout(() => {
+      const btn = document.getElementById('clearFiltersBtn');
+      if (btn) btn.addEventListener('click', () => {
+        if (cropFilter) cropFilter.value = '';
+        if (marketFilter) marketFilter.value = '';
+        if (searchInput) searchInput.value = '';
+        displayPrices(allData);
+      });
+    }, 50);
     updateChart([]);
     return;
   }
 
-  const prices = filtered.map((d) => Number(d.modal_price || d.modalPrice || d.price || 0));
+  const basePrices = filtered.map(d => Number(d.modal_price || d.modalPrice || d.price || 0));
+  const prices = basePrices.map(v => convert(v));
   const max = Math.max(...prices);
   const min = Math.min(...prices);
 
-  priceBody.innerHTML = filtered.map((d) => {
-    const name = d.commodity || d.crop || 'Unknown';
-    const mkt  = d.market || '—';
-    const lo   = Number(d.min_price  || d.minPrice  || 0);
-    const hi   = Number(d.max_price  || d.maxPrice  || 0);
-    const mod  = Number(d.modal_price || d.modalPrice || d.price || 0);
-    const cls  = mod === max ? 'highest' : mod === min ? 'lowest' : '';
-    return `<tr class="${cls}">
+    if (priceBody) {
+    priceBody.innerHTML = filtered.map((d, i) => {
+      const name = d.commodity || d.crop || 'Unknown';
+      const mkt  = d.market || '—';
+      const lo   = Number(d.min_price  || d.minPrice  || 0);
+      const hi   = Number(d.max_price  || d.maxPrice  || 0);
+      const mod  = Number(d.modal_price || d.modalPrice || d.price || 0);
+      const loC = convert(lo);
+      const hiC = convert(hi);
+      const modC = convert(mod);
+      const cls  = modC === max ? 'highest' : modC === min ? 'lowest' : '';
+      return `<tr class="${cls}">
       <td>${name}</td><td>${mkt}</td>
-      <td>₹${fmt(lo)}</td><td>₹${fmt(hi)}</td><td>₹${fmt(mod)}</td>
+      <td>${fmt(loC)}</td><td>${fmt(hiC)}</td><td>${fmt(modC)}</td>
     </tr>`;
-  }).join('');
+    }).join('');
+  }
 
   updateChart(filtered);
 }
@@ -303,20 +370,20 @@ function updateChart(data) {
     return;
   }
 
-  const prices = data.map((d) => Number(d.modal_price || d.modalPrice || d.price || 0));
+  const basePrices = data.map(d => Number(d.modal_price || d.modalPrice || d.price || 0));
+  const prices = basePrices.map(v => convert(v));
   const maxP   = Math.max(...prices);
   const minP   = Math.min(...prices);
 
   if (canvas) canvas.style.display = '';
   if (placeholder) placeholder.style.display = 'none';
 
-  if (canvas) {
     chart = new Chart(canvas, {
     type: 'bar',
     data: {
-      labels: data.map((d) => `${d.commodity || d.crop} (${d.market})`),
+      labels: data.map(d => `${d.commodity || d.crop} (${d.market})`),
       datasets: [{
-        label: 'Modal Price (₹)',
+        label: `Modal Price (${selectedCurrency})`,
         data: prices,
         backgroundColor: prices.map(p =>
           p === maxP ? 'rgba(27,94,32,0.85)' :
@@ -337,49 +404,58 @@ function updateChart(data) {
       maintainAspectRatio: true,
       plugins: {
         legend: { display: false },
-        tooltip: { callbacks: { label: (ctx) => `₹${fmt((ctx.parsed && ctx.parsed.y) || 0)}` } }
+        tooltip: { callbacks: { label: (ctx) => `${fmt(ctx.parsed?.y ?? 0)}` } }
       },
       scales: {
-        y: { beginAtZero: true, ticks: { callback: (v) => `₹${fmt(v)}` } },
+        y: { beginAtZero: true, ticks: { callback: (v) => `${fmt(v)}` } },
         x: { ticks: { maxRotation: 45, font: { size: 11 } } }
       }
     }
-    });
-  }
+  });
 }
 
 // ── Stats bar ────────────────────────────────────────────
 function updateStats(data) {
-  const bar     = document.getElementById('statsBar');
-  const prices  = data.map((d) => Number(d.modal_price || d.modalPrice || d.price || 0)).filter(Boolean);
-  const crops   = new Set(data.map((d) => d.commodity || d.crop)).size;
-  const markets = new Set(data.map((d) => d.market)).size;
-  const avg     = prices.length ? prices.reduce((a, b) => a + b, 0) / prices.length : 0;
-  const hi      = prices.length ? Math.max(...prices) : 0;
-  const lo      = prices.length ? Math.min(...prices) : 0;
+  const bar = document.getElementById('statsBar');
+  const prices = data.map(d => Number(d.modal_price || d.modalPrice || d.price || 0)).filter(Boolean);
+  const crops = new Set(data.map(d => d.commodity || d.crop)).size;
+  const markets = new Set(data.map(d => d.market)).size;
+  const baseAvg = prices.length ? prices.reduce((a, b) => a + b, 0) / prices.length : 0;
+  const hi = prices.length ? Math.max(...prices) : 0;
+  const lo = prices.length ? Math.min(...prices) : 0;
+  const avg = convert(baseAvg);
+  const hiC = convert(hi);
+  const loC = convert(lo);
 
   const statCrops = document.getElementById('statCrops');
   const statMarkets = document.getElementById('statMarkets');
   const statAvg = document.getElementById('statAvg');
   const statHigh = document.getElementById('statHigh');
   const statLow = document.getElementById('statLow');
+
   if (statCrops) statCrops.textContent = String(crops);
   if (statMarkets) statMarkets.textContent = String(markets);
-  if (statAvg) statAvg.textContent = `₹${fmt(avg)}`;
-  if (statHigh) statHigh.textContent = `₹${fmt(hi)}`;
-  if (statLow) statLow.textContent = `₹${fmt(lo)}`;
+  if (statAvg) statAvg.textContent = fmt(avg);
+  if (statHigh) statHigh.textContent = fmt(hiC);
+  if (statLow) statLow.textContent = fmt(loC);
   if (bar) bar.removeAttribute('hidden');
 }
 
 // ── Download CSV ─────────────────────────────────────────
-function downloadCSV() {
+function downloadCSV(): void {
   if (!allData.length) return;
-  const header = 'Crop,Market,Min Price,Max Price,Modal Price';
-  const rows   = allData.map((d) =>
-    [d.commodity || d.crop, d.market, d.min_price || d.minPrice, d.max_price || d.maxPrice, d.modal_price || d.modalPrice || d.price]
+  const header = `Crop,Market,Min Price (${selectedCurrency}),Max Price (${selectedCurrency}),Modal Price (${selectedCurrency})`;
+  const rows = allData.map(d => {
+    const lo = Number(d.min_price || d.minPrice || 0);
+    const hi = Number(d.max_price || d.maxPrice || 0);
+    const mod = Number(d.modal_price || d.modalPrice || d.price || 0);
+    const loC = convert(lo).toFixed(2);
+    const hiC = convert(hi).toFixed(2);
+    const modC = convert(mod).toFixed(2);
+    return [d.commodity || d.crop, d.market, loC, hiC, modC]
       .map(v => `"${String(v ?? '').replace(/"/g, '""')}"`)
-      .join(',')
-  );
+      .join(',');
+  });
   const csv = [header, ...rows].join('\n');
   const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
   const a = document.createElement('a');
@@ -389,27 +465,42 @@ function downloadCSV() {
 }
 
 // ── Price alert ──────────────────────────────────────────
-function setAlert() {
-  const crop  = alertCrop.value.trim();
-  const price = parseFloat(alertPrice.value);
-  if (!crop)             { showToast('Please select a crop first.', 'error'); return; }
-  if (isNaN(price) || price <= 0) { showToast('Enter a valid price above ₹0.', 'error'); return; }
-  alertMsg.textContent = `✅ Alert set: notify when ${crop} ≥ ₹${fmt(price)}.`;
-  showToast(`Alert set for ${crop} at ₹${fmt(price)}`, 'success');
+function setAlert(): void {
+  const crop = alertCrop?.value.trim() || '';
+  const price = parseFloat(alertPrice?.value || '0');
+  if (!crop) { showToast('Please select a crop first.', 'error'); return; }
+  if (isNaN(price) || price <= 0) { showToast(`Enter a valid price above ${fmt(0)}`, 'error'); return; }
+  if (alertMsg) alertMsg.textContent = `✅ Alert set: notify when ${crop} ≥ ${fmt(price)}.`;
+  showToast(`Alert set for ${crop} at ${fmt(price)}`, 'success');
 }
 
 // ── Event listeners ──────────────────────────────────────
-loadBtn.addEventListener('click', loadPrices);
-downloadBtn.addEventListener('click', downloadCSV);
-setAlertBtn.addEventListener('click', setAlert);
-cropFilter.addEventListener('change',   () => displayPrices(allData));
-marketFilter.addEventListener('change', () => displayPrices(allData));
-searchInput.addEventListener('input',   () => displayPrices(allData));
+if (loadBtn) loadBtn.addEventListener('click', loadPrices);
+if (downloadBtn) downloadBtn.addEventListener('click', downloadCSV);
+if (setAlertBtn) setAlertBtn.addEventListener('click', setAlert);
+if (cropFilter) cropFilter.addEventListener('change', () => displayPrices(allData));
+if (marketFilter) marketFilter.addEventListener('change', () => displayPrices(allData));
+if (searchInput) searchInput.addEventListener('input', () => displayPrices(allData));
+if (currencySelect) currencySelect.addEventListener('change', async (e) => {
+  selectedCurrency = (currencySelect.value || 'INR');
+  localStorage.setItem('displayCurrency', selectedCurrency);
+  await loadRates();
+  setCurrencyLabels();
+  displayPrices(allData);
+  updateStats(allData);
+  updateChart(allData);
+});
 
-document.addEventListener('DOMContentLoaded', loadPrices);
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadRates();
+  setCurrencyLabels();
+  loadPrices();
+  // refresh rates every 5 minutes
+  setInterval(loadRates, 300000);
+});
 
 // ── PWA install prompt ───────────────────────────────────
-let deferredPrompt;
+let deferredPrompt = null;
 const installBtn = document.getElementById('installBtn');
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
