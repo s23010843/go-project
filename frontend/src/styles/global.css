@@ -289,7 +289,7 @@ tbody tr:hover td { background: #f5fbf5; }
 
 /* Page-specific footer + bot (chat-fab) color themes */
 .page-404 .site-footer {
-  background: linear-gradient(135deg, #ff8a65 0%, #ff7043 100%);
+  /* background: linear-gradient(135deg, #ff8a65 0%, #ff7043 100%); */
   color: #fff;
 }
 .page-404 .site-footer a { color: rgba(255,255,255,0.95); border-bottom-color: rgba(255,255,255,0.2); }
@@ -303,7 +303,7 @@ tbody tr:hover td { background: #f5fbf5; }
 .page-500 .chat-fab { background: linear-gradient(135deg, #c62828 0%, #b71c1c 100%); box-shadow: 0 8px 28px rgba(198,40,40,.28); }
 
 .page-offline .site-footer {
-  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+  /* background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%); */
   color: #fff;
 }
 .page-offline .site-footer a { color: rgba(255,255,255,0.95); border-bottom-color: rgba(255,255,255,0.2); }
