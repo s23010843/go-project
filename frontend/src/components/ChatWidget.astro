@@ -94,6 +94,8 @@ const chatInput = document.getElementById('chatInput');
 const chatSend = document.getElementById('chatSend');
 
 let intents = [];
+let botData = {};
+let botPrices = null;
 if (!fab || !widget || !closeBtn || !chatWindow || !chatInput || !chatSend) {
   console.warn('ChatWidget: missing DOM elements, chat initialization skipped.');
 } else {
@@ -108,13 +110,104 @@ if (!fab || !widget || !closeBtn || !chatWindow || !chatInput || !chatSend) {
 
   async function loadIntents() {
     try {
-      const res = await fetch('/intents.json');
-      const data = await res.json();
+      const [resIntents, resPrices] = await Promise.all([fetch('/intents.json'), fetch('/prices.json').catch(()=>null)]);
+      const data = resIntents ? await resIntents.json() : {};
       const raw = Array.isArray(data) ? data : (data.intents || []);
+      const dataObj = (data && data.data) ? data.data : {};
+      botData = dataObj;
+
+      if (resPrices) {
+        try { botPrices = await resPrices.json(); } catch(e) { botPrices = null; }
+      }
+
       intents = raw.map(function(it) {
-        return { patterns: it.patterns || [], responses: it.replies || it.responses || [] };
+        const srcResponses = it.replies || it.responses || [];
+        const responses = (srcResponses || []).map(function(r) {
+          if (typeof r !== 'string') return r;
+          return r
+            .replace(/\{\{\s*data\.crops\s*\}\}/gi, (Array.isArray(dataObj.crops) ? dataObj.crops.join(', ') : ''))
+            .replace(/\{\{\s*data\.markets\s*\}\}/gi, (Array.isArray(dataObj.markets) ? dataObj.markets.join(', ') : ''));
+        });
+        return { patterns: it.patterns || [], responses: responses };
       });
     } catch (e) { /* silent */ }
+  }
+
+  function normalizeText(s) {
+    return String(s || '').toLowerCase().replace(/[\u2018\u2019\u201C\u201D]/g, "'").replace(/["'.,()\[\]{}\/\\]/g,'').trim();
+  }
+
+  function levenshtein(a, b) {
+    a = String(a||''); b = String(b||''); if (a === b) return 0; if (!a.length) return b.length; if (!b.length) return a.length;
+    let v0 = Array(b.length + 1), v1 = Array(b.length + 1);
+    for (let i = 0; i <= b.length; i++) v0[i] = i;
+    for (let i = 0; i < a.length; i++) {
+      v1[0] = i + 1;
+      for (let j = 0; j < b.length; j++) {
+        const cost = a[i] === b[j] ? 0 : 1;
+        v1[j+1] = Math.min(v1[j] + 1, v0[j+1] + 1, v0[j] + cost);
+      }
+      for (let j = 0; j <= b.length; j++) v0[j] = v1[j];
+    }
+    return v1[b.length];
+  }
+
+  function findBestMatch(query, list) {
+    if (!query || !Array.isArray(list) || !list.length) return null;
+    const nq = normalizeText(query);
+    let best = {item: null, score: Infinity};
+    for (let i = 0; i < list.length; i++) {
+      const item = list[i];
+      const ni = normalizeText(item);
+      if (ni === nq) return item;
+      if (ni.indexOf(nq) !== -1 || nq.indexOf(ni) !== -1) return item;
+      const d = levenshtein(nq, ni);
+      if (d < best.score) best = {item: item, score: d};
+    }
+    // allow small edits proportional to length
+    if (best.item && best.score <= Math.max(1, Math.floor(normalizeText(best.item).length * 0.25))) return best.item;
+    return null;
+  }
+
+  function findCropInText(q) {
+    if (!botData || !Array.isArray(botData.crops)) return null;
+    // try direct find first
+    for (let i = 0; i < botData.crops.length; i++) {
+      const name = botData.crops[i];
+      const re = new RegExp('\\b' + name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '\\b','i');
+      if (re.test(q)) return name;
+    }
+    // fuzzy
+    const words = q.split(/\s+/).filter(Boolean);
+    for (let w of words) {
+      const fm = findBestMatch(w, botData.crops);
+      if (fm) return fm;
+    }
+    return findBestMatch(q, botData.crops);
+  }
+
+  function findMarketInText(q) {
+    if (!botData || !Array.isArray(botData.markets)) return null;
+    for (let i = 0; i < botData.markets.length; i++) {
+      const name = botData.markets[i];
+      const re = new RegExp('\\b' + name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '\\b','i');
+      if (re.test(q)) return name;
+    }
+    return findBestMatch(q, botData.markets);
+  }
+
+  function lookupPrice(crop, market) {
+    if (!botPrices || !botPrices.markets) return null;
+    const m = botPrices.markets.find(x => normalizeText(x.name) === normalizeText(market)) || botPrices.markets.find(x => normalizeText(x.name).indexOf(normalizeText(market))!==-1) || null;
+    if (!m) return null;
+    // try direct commodity key
+    const commodities = m.commodities || {};
+    if (commodities[crop]) return {market: m, commodity: commodities[crop], key: crop};
+    // try best match among commodity keys
+    const keys = Object.keys(commodities);
+    const bestKey = findBestMatch(crop, keys);
+    if (bestKey) return {market: m, commodity: commodities[bestKey], key: bestKey};
+    return null;
   }
 
   function getFocusable(container) {
@@ -191,14 +284,51 @@ if (!fab || !widget || !closeBtn || !chatWindow || !chatInput || !chatSend) {
   $chatInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') sendMsg(); });
 
   function addMsg(text, who) {
-    const div = document.createElement('div');
-    div.className = 'chat-message ' + who;
-    div.textContent = text;
-    $chatWindow.appendChild(div);
+    const container = document.createElement('div');
+    container.className = 'chat-message ' + who;
+
+    const msg = document.createElement('div');
+    msg.className = 'chat-message__text';
+    msg.textContent = text;
+
+    const copyBtn = document.createElement('button');
+    copyBtn.type = 'button';
+    copyBtn.className = 'chat-copy-btn';
+    copyBtn.setAttribute('aria-label', 'Copy message');
+    copyBtn.title = 'Copy message';
+    // clipboard SVG (no visible text)
+    copyBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 4h-1.5a2 2 0 0 0-3.9 0H9a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><path d="M9 8h6"></path></svg>';
+    copyBtn.addEventListener('click', function(e) { e.stopPropagation(); copyToClipboard(text, copyBtn); });
+
+    container.appendChild(msg);
+    container.appendChild(copyBtn);
+    $chatWindow.appendChild(container);
     $chatWindow.scrollTop = $chatWindow.scrollHeight;
   }
   function addBotMsg(text) { addMsg(text, 'bot'); }
   function addUserMsg(text) { addMsg(text, 'user'); }
+
+  function copyToClipboard(text, btn) {
+    if (!btn) return;
+    const originalHTML = btn.innerHTML;
+    const checkSVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+    function flash() {
+      btn.innerHTML = checkSVG;
+      btn.setAttribute('aria-pressed','true');
+      setTimeout(function(){ btn.innerHTML = originalHTML; btn.removeAttribute('aria-pressed'); }, 1400);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(flash).catch(function(){
+        try {
+          const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); flash();
+        } catch (e) { /* ignore */ }
+      });
+    } else {
+      try {
+        const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); flash();
+      } catch (e) { /* ignore */ }
+    }
+  }
 
   function sendMsg() {
     const raw = $chatInput.value.trim(); if (!raw) return;
@@ -210,6 +340,55 @@ if (!fab || !widget || !closeBtn || !chatWindow || !chatInput || !chatSend) {
 
   function getReply(q) {
     const defaultReply = "I'm not sure about that. Try asking about crop prices, markets, or how to download data!";
+    function escapeRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+    try {
+      // Check for colors/varieties questions first
+      const wantsVarieties = /\b(variet(?:y|ies)|which varieties|what varieties|varieties of)\b/i.test(q);
+      const wantsColors = /\b(colou?r|colors?)\b/i.test(q) && /\b(color of|colors of|what color|what colors|colors?)?\b/i.test(q);
+      const cropMention = findCropInText(q);
+      if (wantsVarieties) {
+        if (cropMention && botData.varieties && botData.varieties[cropMention]) {
+          return `${cropMention} varieties: ${botData.varieties[cropMention].join(', ')}.`;
+        }
+        if (cropMention) return `No variety data available for ${cropMention}.`;
+        return `Which crop do you want varieties for?`;
+      }
+      if (wantsColors) {
+        if (cropMention && botData.colors && botData.colors[cropMention]) {
+          return `${cropMention} colors: ${botData.colors[cropMention].join(', ')}.`;
+        }
+        if (cropMention) return `No color data available for ${cropMention}.`;
+        return `Which crop do you mean? For example: 'Colors of Tomato' or 'What colors are apples?'.`;
+      }
+
+      // Try to find crop and market (with fuzzy matching)
+      const foundCrop = findCropInText(q);
+      const foundMarket = findMarketInText(q);
+      if (foundCrop && foundMarket) {
+        const p = lookupPrice(foundCrop, foundMarket);
+        if (p && p.commodity) {
+          const cur = (botPrices && botPrices.currency) ? botPrices.currency : '';
+          const u = p.commodity.unit || '';
+          return `Price for ${foundCrop} in ${p.market.name}: ${cur}${p.commodity.price} per ${u} (low: ${cur}${p.commodity.low}, high: ${cur}${p.commodity.high}).`;
+        }
+        return `No price data found for ${foundCrop} in ${foundMarket}.`;
+      }
+      if (foundCrop && !foundMarket) {
+        // show markets where crop is available if possible
+        if (botPrices && botPrices.markets) {
+          const avail = botPrices.markets.filter(function(m){
+            const keys = Object.keys(m.commodities || {});
+            return !!findBestMatch(foundCrop, keys);
+          }).map(function(m){ return m.name; });
+          if (avail.length) return `Specify a market for ${foundCrop}. Available in: ${avail.join(', ')}.`;
+        }
+        return `Specify a market for ${foundCrop} for more accurate results: e.g. 'Price of ${foundCrop} in Northern Regional Market'.`;
+      }
+      if (!foundCrop && foundMarket) {
+        return `Which crop do you want the price for in ${foundMarket}?`;
+      }
+      // fallthrough to intent patterns below
+    } catch (e) { /* ignore extraction errors */ }
     for (let i = 0; i < intents.length; i++) {
       const intent = intents[i];
       const pats = intent.patterns || [];

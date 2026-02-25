@@ -33,23 +33,25 @@
     {
       "name": "list_crops",
       "patterns": ["\\b(what crops?|which crops?|available crops?|list crops?)\\b"],
-      "responses": ["__CROPS__"],
-      "note": "Replace __CROPS__ with `data.crops` joined at runtime to avoid repetition."
+      "responses": ["{{data.crops}}"],
+      "note": "At runtime replace {{data.crops}} with the joined `data.crops` (e.g. `data.crops.join(', ')`)."
     },
     {
       "name": "list_markets",
-      "patterns": ["\\b(what markets?|which markets?|available markets?|list markets?)\\b"],
-      "responses": ["__MARKETS__"],
-      "note": "Replace __MARKETS__ with `data.markets` joined at runtime."
+      "patterns": ["\\b(what markets?|which markets?|available markets?|list markets?|markets?)\\b"],
+      "responses": ["{{data.markets}}"],
+      "note": "At runtime replace {{data.markets}} with the joined `data.markets` (e.g. `data.markets.join(', ')`)."
     },
     {
-      "name": "price_query_template",
-      "patterns": ["\\b(price|price of|rate|rate of|cost|cost of)\\b"],
+      "name": "price_query_help",
+      "patterns": [
+        "\\b(how\\s*(do\\s*i|can\\s*i|to)\\s.*price|how to ask.*price|example.*price|show me an example.*price)\\b"
+      ],
       "responses": [
         "To get a price, ask like: 'Price of <crop> in <market>' or 'What's the price of <crop> today?'.",
         "Specify a market for more accurate results: e.g. 'Tomato in Southern Produce Exchange'."
       ],
-      "note": "The app should extract crop and market from user text using `data.crops` and `data.markets` arrays programmatically."
+      "note": "This intent is a help/template responder. The app should extract crop and market from user text using `data.crops` and `data.markets` programmatically; avoid using this intent to answer normal price queries."
     },
     {
       "name": "fallback",
@@ -159,5 +161,39 @@
       "Bulk Grain Terminal",
       "Retail Distribution Center"
     ]
+    ,
+    "colors": {
+      "Tomato": ["Red", "Green", "Yellow", "Orange"],
+      "Apple": ["Red", "Green", "Yellow"],
+      "Banana": ["Yellow", "Green"],
+      "Mango": ["Yellow", "Orange", "Red", "Green"],
+      "Pepper": ["Green", "Red", "Yellow", "Orange", "Purple"],
+      "Onion": ["Yellow", "Red", "White"],
+      "Potato": ["Brown", "Yellow", "Red", "Purple"],
+      "Carrot": ["Orange", "Purple", "Yellow", "White"],
+      "Cabbage": ["Green", "Red", "Purple"],
+      "Eggplant": ["Purple", "White"]
+    },
+    "varieties": {
+      "Wheat": ["Hard Red", "Soft Red", "Durum"],
+      "Rice": ["Basmati", "Jasmine", "Long Grain", "Short Grain"],
+      "Maize": ["Dent", "Flint", "Sweet", "Popcorn"],
+      "Corn": ["Field", "Sweet", "Flint"],
+      "Potato": ["Russet", "Yukon Gold", "Red", "Fingerling"],
+      "Tomato": ["Roma", "Cherry", "Beefsteak", "Heirloom"],
+      "Onion": ["Yellow", "Red", "White", "Sweet"],
+      "Garlic": ["Softneck", "Hardneck"],
+      "Mango": ["Alphonso", "Kent", "Tommy Atkins", "Haden"],
+      "Banana": ["Cavendish", "Plantain"],
+      "Apple": ["Gala", "Fuji", "Granny Smith", "Honeycrisp"],
+      "Orange": ["Navel", "Valencia"],
+      "Pepper": ["Bell", "Poblano", "Anaheim"],
+      "Chili": ["Cayenne", "Bird's Eye", "Serrano"],
+      "Cabbage": ["Green", "Red", "Savoy"],
+      "Carrot": ["Nantes", "Chantenay", "Imperator"],
+      "Peas": ["Garden", "Snow", "Sugar Snap"],
+      "Lentil": ["Brown", "Green", "Red"],
+      "Soybean": ["Edamame", "Dry"]
+    }
   }
 }
