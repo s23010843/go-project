@@ -23,6 +23,7 @@ import BotSvg from './BotSvg.astro';
       </span>
       <span id="chatTitle">FarmBot Assistant</span>
     </div>
+    <button id="loadPricesAjax" class="chat-price-btn" title="Load prices via AJAX">Load Prices (AJAX)</button>
     <button class="chat-close-btn" id="chatClose" aria-label="Close chat">
       <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
         <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -330,15 +331,16 @@ if (!fab || !widget || !closeBtn || !chatWindow || !chatInput || !chatSend) {
     }
   }
 
-  function sendMsg() {
+  async function sendMsg() {
     const raw = $chatInput.value.trim(); if (!raw) return;
     addUserMsg(raw);
     $chatInput.value = '';
-    const reply = getReply(raw.toLowerCase());
+    const reply = await getReplyAsync(raw.toLowerCase());
     setTimeout(function(){ addBotMsg(reply); }, 320);
   }
 
-  function getReply(q) {
+  async function getReplyAsync(q) {
+    // async version: same logic but can fetch exchange rates for currency conversions
     const defaultReply = "I'm not sure about that. Try asking about crop prices, markets, or how to download data!";
     function escapeRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
     try {
@@ -367,9 +369,21 @@ if (!fab || !widget || !closeBtn || !chatWindow || !chatInput || !chatSend) {
       if (foundCrop && foundMarket) {
         const p = lookupPrice(foundCrop, foundMarket);
         if (p && p.commodity) {
-          const cur = (botPrices && botPrices.currency) ? botPrices.currency : '';
-          const u = p.commodity.unit || '';
-          return `Price for ${foundCrop} in ${p.market.name}: ${cur}${p.commodity.price} per ${u} (low: ${cur}${p.commodity.low}, high: ${cur}${p.commodity.high}).`;
+          // Convert price to USD and show equivalents (INR, LKR)
+          const fromCurrency = (botPrices && botPrices.currency) ? botPrices.currency : (p.market.currency || 'USD');
+          const amount = Number(p.commodity.price) || 0;
+          try {
+            const conv = await convertCurrency(amount, fromCurrency, ['USD','INR','LKR']);
+            const usdStr = formatCurrency(conv['USD'], 'USD');
+            const inrStr = conv['INR'] ? formatCurrency(conv['INR'], 'INR') : 'N/A';
+            const lkrStr = conv['LKR'] ? formatCurrency(conv['LKR'], 'LKR') : 'N/A';
+            const u = p.commodity.unit || '';
+            return `Price for ${foundCrop} in ${p.market.name}: ${usdStr} per ${u} (${inrStr}, ${lkrStr}).`;
+          } catch (e) {
+            const cur = (botPrices && botPrices.currency) ? botPrices.currency : '';
+            const u = p.commodity.unit || '';
+            return `Price for ${foundCrop} in ${p.market.name}: ${cur}${p.commodity.price} per ${u} (conversion unavailable).`;
+          }
         }
         return `No price data found for ${foundCrop} in ${foundMarket}.`;
       }
@@ -409,6 +423,102 @@ if (!fab || !widget || !closeBtn || !chatWindow || !chatInput || !chatSend) {
       }
     }
     return defaultReply;
+  }
+  // Currency conversion helpers
+  const _exchangeCache = { ts: 0, base: null, rates: {} };
+  function formatCurrency(amount, currency) {
+    if (amount === null || amount === undefined || isNaN(amount)) return '';
+    const n = Number(amount);
+    const map = { USD: '$', INR: '₹', LKR: 'Rs ' };
+    const sym = map[currency] || (currency + ' ');
+    return `${sym}${n.toFixed(2)}`;
+  }
+  async function fetchRates(base, symbols) {
+    const now = Date.now();
+    const key = base + '|' + (symbols||[]).join(',');
+    // simple cache: 30 minutes
+    if (_exchangeCache.ts && (_exchangeCache.base === base) && (now - _exchangeCache.ts < 30 * 60 * 1000)) {
+      return _exchangeCache.rates;
+    }
+    try {
+      const qs = new URLSearchParams();
+      qs.set('base', base);
+      if (symbols && symbols.length) qs.set('symbols', symbols.join(','));
+      const url = 'https://api.exchangerate.host/latest?' + qs.toString();
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('rate fetch failed');
+      const json = await res.json();
+      const rates = json && json.rates ? json.rates : {};
+      _exchangeCache.ts = Date.now();
+      _exchangeCache.base = base;
+      _exchangeCache.rates = rates;
+      return rates;
+    } catch (e) {
+      throw e;
+    }
+  }
+  async function convertCurrency(amount, fromCurrency, targets) {
+    const t = (targets || ['USD','INR','LKR']).slice();
+    // ensure unique and include USD
+    const uniq = Array.from(new Set(t));
+    const base = (fromCurrency || 'USD').toUpperCase();
+    const rates = await fetchRates(base, uniq);
+    const out = {};
+    for (let i = 0; i < uniq.length; i++) {
+      const cur = uniq[i];
+      if (cur === base) out[cur] = Number(amount);
+      else if (rates && typeof rates[cur] === 'number') out[cur] = Number(amount) * Number(rates[cur]);
+      else out[cur] = null;
+    }
+    return out;
+  }
+  async function fetchPricesViaXHR() {
+    try {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', '/prices.json', true);
+      xhr.responseType = 'json';
+      xhr.onreadystatechange = async function() {
+        if (xhr.readyState !== 4) return;
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const data = xhr.response || JSON.parse(xhr.responseText || '{}');
+            botPrices = data;
+            const market = (data && data.markets && data.markets[0]) || null;
+            if (market && market.commodities) {
+              const keys = Object.keys(market.commodities);
+              const first = keys[0];
+              const com = market.commodities[first];
+              const fromCurrency = (data && data.currency) ? data.currency : (market.currency || 'USD');
+              try {
+                const conv = await convertCurrency(Number(com.price) || 0, fromCurrency, ['USD','INR','LKR']);
+                const usdStr = formatCurrency(conv['USD'], 'USD');
+                const inrStr = conv['INR'] ? formatCurrency(conv['INR'], 'INR') : 'N/A';
+                const lkrStr = conv['LKR'] ? formatCurrency(conv['LKR'], 'LKR') : 'N/A';
+                addBotMsg(`(AJAX) ${market.name}: ${usdStr} per ${com.unit || ''} (${inrStr}, ${lkrStr}) — ${first}`);
+              } catch (e) {
+                addBotMsg(`(AJAX) ${market.name}: ${ (data.currency||'') }${com.price} per ${com.unit || ''} (${first}) (conversion failed)`);
+              }
+            } else {
+              addBotMsg('(AJAX) Prices loaded but no market data found.');
+            }
+          } catch (e) {
+            addBotMsg('(AJAX) Failed to parse prices.');
+          }
+        } else {
+          addBotMsg('(AJAX) Failed to load prices (HTTP ' + xhr.status + ').');
+        }
+      };
+      xhr.send();
+    } catch (e) {
+      addBotMsg('(AJAX) Request error.');
+    }
+  }
+  const loadPricesBtnEl = document.getElementById('loadPricesAjax');
+  if (loadPricesBtnEl) loadPricesBtnEl.addEventListener('click', function(){ fetchPricesViaXHR(); });
+
+  function getReply(q) {
+    // keep a synchronous fallback that calls the async variant when needed
+    return "Processing...";
   }
 }
 </script>
