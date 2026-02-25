@@ -120,7 +120,12 @@ if (!fab || !widget || !closeBtn || !chatWindow || !chatInput || !chatSend) {
     try {
       const res = await fetch('/intents.json');
       const data = await res.json();
-      intents = data.intents ?? [];
+      // support both shapes: an array (legacy) or { intents: [...] }
+      const raw = Array.isArray(data) ? data : (data.intents ?? []);
+      intents = raw.map((it: any) => ({
+        patterns: it.patterns || [],
+        responses: it.replies ?? it.responses ?? []
+      }));
     } catch { /* silent */ }
   }
 
@@ -161,15 +166,25 @@ function sendMsg() {
 }
 
 function getReply(q: string): string {
+  const defaultReply = "I'm not sure about that. Try asking about crop prices, markets, or how to download data!";
   for (const intent of intents) {
     for (const pattern of intent.patterns) {
-      if (q.includes(pattern.toLowerCase())) {
-        const responses = intent.responses;
-        return responses[Math.floor(Math.random() * responses.length)];
+      try {
+        const re = new RegExp(pattern, 'i');
+        if (re.test(q)) {
+          const responses = intent.responses || [];
+          return responses[Math.floor(Math.random() * responses.length)] || defaultReply;
+        }
+      } catch (e) {
+        // fallback to simple substring match when pattern isn't a valid regex
+        if (typeof pattern === 'string' && q.includes(pattern.toLowerCase())) {
+          const responses = intent.responses || [];
+          return responses[Math.floor(Math.random() * responses.length)] || defaultReply;
+        }
       }
     }
   }
-  return "I'm not sure about that. Try asking about crop prices, markets, or how to download data!";
+  return defaultReply;
 }
 }
 </script>

@@ -43,4 +43,33 @@
     "patterns": ["\\b(what markets?|which markets?|available markets?|list markets?)\\b"],
     "replies": ["__MARKETS__"]
   }
+  ,
+  {
+    "patterns": ["\\brice\\b"],
+    "replies": [
+      "Do you mean the price of Rice? Try 'Rice in Central' or 'Rice price today'.",
+      "If you want Rice prices now, specify a market: e.g. 'Rice in South'."
+    ]
+  },
+  {
+    "patterns": ["\\bwheat\\b"],
+    "replies": [
+      "Do you mean the price of Wheat? Try 'Wheat in Central' or 'Wheat price today'.",
+      "To get Wheat prices, specify a market: e.g. 'Wheat in North'."
+    ]
+  },
+  {
+    "patterns": ["\\bonion\\b"],
+    "replies": [
+      "Do you mean the price of Onion? Try 'Onion in North' or 'Onion price today'.",
+      "Specify market for Onion prices, e.g. 'Onion in Central'."
+    ]
+  },
+  {
+    "patterns": ["\\btomato\\b"],
+    "replies": [
+      "Do you mean the price of Tomato? Try 'Tomato in South' or 'Tomato price today'.",
+      "Specify market for Tomato prices, e.g. 'Tomato in Central'."
+    ]
+  }
 ]

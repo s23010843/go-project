@@ -6,7 +6,7 @@
      • Offline navigation  → serve cached page or /offline.html
    ─────────────────────────────────────────────────────────────────────── */
 
-const VERSION   = 'v2';
+const VERSION   = 'v3';
 const CACHE     = 'farm-market-' + VERSION;
 const OFFLINE   = '/offline.html';
 
@@ -23,7 +23,8 @@ const PRECACHE = [
   '/manifest.json',
   '/offline.html',
   '/404.html',
-  '/500.html'
+  '/500.html',
+  '/assets/video/agriculture-environment.mp4',
 ];
 
 // ── Install ────────────────────────────────────────────────────────────────
