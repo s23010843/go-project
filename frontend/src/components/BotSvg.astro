@@ -3,8 +3,27 @@ export interface Props {
   idPrefix: string;
   size?: number;
   className?: string;
+  mood?: 'happy' | 'neutral' | 'sad' | 'surprised';
+  bodyColor?: string;
+  panelColor?: string;
+  pupilColor?: string;
+  glintColor?: string;
+  antennaColor?: string;
+  mouthColor?: string;
 }
-const { idPrefix, size = 40, className = '' } = Astro.props;
+const {
+  idPrefix,
+  size = 40,
+  className = '',
+  mood = 'happy',
+  bodyColor = '#2e7d32',
+  panelColor = '#e8f5e9',
+  pupilColor = '#1b5e20',
+  glintColor = 'white',
+  antennaColor = '#43a047',
+  mouthColor = undefined,
+} = Astro.props;
+const effectiveMouthColor = mouthColor ?? bodyColor;
 const lPupil = `${idPrefix}-pupil-l`;
 const rPupil = `${idPrefix}-pupil-r`;
 const lGlint = `${idPrefix}-glint-l`;
@@ -19,25 +38,33 @@ const rGlint = `${idPrefix}-glint-r`;
   data-bot-svg
 >
   <!-- Body -->
-  <rect x="8" y="18" width="48" height="36" rx="10" ry="10" fill="#2e7d32"/>
+  <rect x="8" y="18" width="48" height="36" rx="10" ry="10" fill={bodyColor}/>
   <!-- Face panel -->
-  <rect x="14" y="24" width="36" height="24" rx="6" ry="6" fill="#e8f5e9"/>
+  <rect x="14" y="24" width="36" height="24" rx="6" ry="6" fill={panelColor}/>
   <!-- Left eye white -->
   <circle cx="23" cy="35" r="7" fill="white"/>
   <!-- Right eye white -->
   <circle cx="41" cy="35" r="7" fill="white"/>
   <!-- Left pupil -->
-  <circle id={lPupil} cx="23" cy="35" r="4" fill="#1b5e20"/>
+  <circle id={lPupil} cx="23" cy="35" r="4" fill={pupilColor}/>
   <!-- Right pupil -->
-  <circle id={rPupil} cx="41" cy="35" r="4" fill="#1b5e20"/>
+  <circle id={rPupil} cx="41" cy="35" r="4" fill={pupilColor}/>
   <!-- Left glint -->
-  <circle id={lGlint} cx="24.5" cy="33" r="1.3" fill="white"/>
+  <circle id={lGlint} cx="24.5" cy="33" r="1.3" fill={glintColor}/>
   <!-- Right glint -->
-  <circle id={rGlint} cx="42.5" cy="33" r="1.3" fill="white"/>
-  <!-- Smile -->
-  <path d="M23 44 Q32 50 41 44" stroke="#2e7d32" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+  <circle id={rGlint} cx="42.5" cy="33" r="1.3" fill={glintColor}/>
+  <!-- Mouth (variants by mood) -->
+  {mood === 'happy' ? (
+    <path d="M23 44 Q32 50 41 44" stroke={effectiveMouthColor} stroke-width="2.2" fill="none" stroke-linecap="round"/>
+  ) : mood === 'neutral' ? (
+    <line x1="23" y1="44" x2="41" y2="44" stroke={effectiveMouthColor} stroke-width="2.2" stroke-linecap="round"/>
+  ) : mood === 'sad' ? (
+    <path d="M23 46 Q32 40 41 46" stroke={effectiveMouthColor} stroke-width="2.2" fill="none" stroke-linecap="round"/>
+  ) : (
+    <circle cx="32" cy="44" r="3" fill={effectiveMouthColor}/>
+  )}
   <!-- Antenna base -->
-  <rect x="30" y="8" width="4" height="10" rx="2" fill="#2e7d32"/>
+  <rect x="30" y="8" width="4" height="10" rx="2" fill={bodyColor}/>
   <!-- Antenna ball -->
-  <circle cx="32" cy="7" r="4" fill="#43a047"/>
+  <circle cx="32" cy="7" r="4" fill={antennaColor}/>
 </svg>
