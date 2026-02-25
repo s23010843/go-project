@@ -1,75 +1,163 @@
-[
-  {
-    "patterns": ["^(hi|hello|hey|hiya|howdy|good\\s*(morning|afternoon|evening)|greetings?)\\b"],
-    "replies": [
-      "Hello! 👋 Ask me about any crop price — e.g. 'Wheat in Central' or 'Rice price'.",
-      "Hi there! I know prices for Wheat, Rice, Onion, and Tomato across markets. What would you like to know?",
-      "Hey! How can I help? Try asking: 'price of Onion in North'."
+{
+  "intents": [
+    {
+      "name": "greeting",
+      "patterns": ["^(hi|hello|hey|hiya|howdy|good\\s*(morning|afternoon|evening)|greetings?)\\b"],
+      "responses": [
+        "Hello! 👋 Ask me about any crop price — e.g. 'Wheat in Central Wholesale Market' or 'Rice price today'.",
+        "Hi there! I can help find current market prices for many crops. What would you like to check?"
+      ]
+    },
+    {
+      "name": "thanks",
+      "patterns": ["\\b(thanks?|thank you|thx|ty)\\b"],
+      "responses": ["You're welcome! 😊 Ask anytime.", "Happy to help! Anything else?"]
+    },
+    {
+      "name": "goodbye",
+      "patterns": ["\\b(bye|goodbye|see\\s*you|later|cya)\\b"],
+      "responses": ["Goodbye! Come back for fresh prices.", "See you! Stay safe."]
+    },
+    {
+      "name": "about",
+      "patterns": ["\\b(who are you|what are you|your name|about you)\\b"],
+      "responses": ["I'm the Farm Price Assistant 🌾 — I provide real-time market prices (when available) and guidance for crops and markets."]
+    },
+    {
+      "name": "help",
+      "patterns": ["\\b(help|what can you do|how.*work|commands?)\\b"],
+      "responses": [
+        "I can look up crop prices and list supported crops and markets. Try: 'Price of Potato in Northern Regional Market' or 'List crops'."
+      ]
+    },
+    {
+      "name": "list_crops",
+      "patterns": ["\\b(what crops?|which crops?|available crops?|list crops?)\\b"],
+      "responses": ["__CROPS__"],
+      "note": "Replace __CROPS__ with `data.crops` joined at runtime to avoid repetition."
+    },
+    {
+      "name": "list_markets",
+      "patterns": ["\\b(what markets?|which markets?|available markets?|list markets?)\\b"],
+      "responses": ["__MARKETS__"],
+      "note": "Replace __MARKETS__ with `data.markets` joined at runtime."
+    },
+    {
+      "name": "price_query_template",
+      "patterns": ["\\b(price|price of|rate|rate of|cost|cost of)\\b"],
+      "responses": [
+        "To get a price, ask like: 'Price of <crop> in <market>' or 'What's the price of <crop> today?'.",
+        "Specify a market for more accurate results: e.g. 'Tomato in Southern Produce Exchange'."
+      ],
+      "note": "The app should extract crop and market from user text using `data.crops` and `data.markets` arrays programmatically."
+    },
+    {
+      "name": "fallback",
+      "patterns": [".*"],
+      "responses": [
+        "Sorry, I didn't get that. Ask for a crop price (e.g. 'Wheat in Eastern Grain Hub') or 'List crops'."
+      ]
+    }
+  ],
+  "data": {
+    "crops": [
+      "Wheat",
+      "Rice",
+      "Maize",
+      "Corn",
+      "Barley",
+      "Sorghum",
+      "Millet",
+      "Oats",
+      "Rye",
+      "Quinoa",
+      "Potato",
+      "Sweet Potato",
+      "Cassava",
+      "Onion",
+      "Garlic",
+      "Tomato",
+      "Eggplant",
+      "Okra",
+      "Cabbage",
+      "Cauliflower",
+      "Carrot",
+      "Beetroot",
+      "Radish",
+      "Cucumber",
+      "Pumpkin",
+      "Squash",
+      "Bitter Gourd",
+      "Bottle Gourd",
+      "Spinach",
+      "Peas",
+      "Green Gram",
+      "Black Gram",
+      "Chickpea",
+      "Lentil",
+      "Pigeon Pea",
+      "Broad Bean",
+      "Kidney Bean",
+      "Soybean",
+      "Groundnut",
+      "Sunflower",
+      "Sesame",
+      "Mustard",
+      "Rapeseed",
+      "Sugarcane",
+      "Tea",
+      "Coffee",
+      "Cocoa",
+      "Ginger",
+      "Turmeric",
+      "Chili",
+      "Capsicum",
+      "Basil",
+      "Mint",
+      "Coriander",
+      "Fenugreek",
+      "Mango",
+      "Banana",
+      "Apple",
+      "Orange",
+      "Lemon",
+      "Lime",
+      "Grapes",
+      "Pomegranate",
+      "Pear",
+      "Peach",
+      "Plum",
+      "Apricot",
+      "Papaya",
+      "Pineapple",
+      "Coconut",
+      "Areca Nut",
+      "Olive",
+      "Avocado",
+      "Date",
+      "Saffron",
+      "Cardamom",
+      "Clove"
+    ],
+    "markets": [
+      "Central Wholesale Market",
+      "Northern Regional Market",
+      "Southern Produce Exchange",
+      "Eastern Grain Hub",
+      "Western Agri Market",
+      "Metro Retail Hub",
+      "Rural Cooperative Market",
+      "City Farmers' Market",
+      "Vegetable Wholesale Yard",
+      "Fruit Wholesale Yard",
+      "Export Terminal",
+      "Import Depot",
+      "Regional Processing Center",
+      "Cold Storage Hub",
+      "Organic Produce Market",
+      "Live Auction Yard",
+      "Bulk Grain Terminal",
+      "Retail Distribution Center"
     ]
-  },
-  {
-    "patterns": ["\\b(thanks?|thank you|thx|ty)\\b"],
-    "replies": [
-      "You're welcome! 😊 Ask anytime.",
-      "Happy to help! Anything else?",
-      "Glad I could help!"
-    ]
-  },
-  {
-    "patterns": ["\\b(bye|goodbye|see\\s*you|later|cya)\\b"],
-    "replies": [
-      "Goodbye! Come back anytime for fresh prices. 🌾",
-      "See you! Happy farming. 👋",
-      "Bye! Take care."
-    ]
-  },
-  {
-    "patterns": ["\\b(who are you|what are you|your name|about you)\\b"],
-    "replies": [
-      "I'm the Farm Price Assistant 🌾 — I give you live crop prices across markets. Try: 'Rice in South'."
-    ]
-  },
-  {
-    "patterns": ["\\b(help|what can you do|how.*work|commands?)\\b"],
-    "replies": [
-      "I can look up crop prices! Just ask:\n• 'Price of Wheat'\n• 'Onion in North'\n• 'Rice in Central market'\nAvailable crops: Wheat, Rice, Onion, Tomato. Markets: Central, North, South."
-    ]
-  },
-  {
-    "patterns": ["\\b(what crops?|which crops?|available crops?|list crops?)\\b"],
-    "replies": ["__CROPS__"]
-  },
-  {
-    "patterns": ["\\b(what markets?|which markets?|available markets?|list markets?)\\b"],
-    "replies": ["__MARKETS__"]
   }
-  ,
-  {
-    "patterns": ["\\brice\\b"],
-    "replies": [
-      "Do you mean the price of Rice? Try 'Rice in Central' or 'Rice price today'.",
-      "If you want Rice prices now, specify a market: e.g. 'Rice in South'."
-    ]
-  },
-  {
-    "patterns": ["\\bwheat\\b"],
-    "replies": [
-      "Do you mean the price of Wheat? Try 'Wheat in Central' or 'Wheat price today'.",
-      "To get Wheat prices, specify a market: e.g. 'Wheat in North'."
-    ]
-  },
-  {
-    "patterns": ["\\bonion\\b"],
-    "replies": [
-      "Do you mean the price of Onion? Try 'Onion in North' or 'Onion price today'.",
-      "Specify market for Onion prices, e.g. 'Onion in Central'."
-    ]
-  },
-  {
-    "patterns": ["\\btomato\\b"],
-    "replies": [
-      "Do you mean the price of Tomato? Try 'Tomato in South' or 'Tomato price today'.",
-      "Specify market for Tomato prices, e.g. 'Tomato in Central'."
-    ]
-  }
-]
+}

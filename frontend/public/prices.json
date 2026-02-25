@@ -1,8 +1,92 @@
-[
-  {"crop":"Wheat","market":"Central","price":2200},
-  {"crop":"Wheat","market":"North","price":2100},
-  {"crop":"Rice","market":"Central","price":3100},
-  {"crop":"Rice","market":"South","price":3000},
-  {"crop":"Onion","market":"North","price":1800},
-  {"crop":"Tomato","market":"Central","price":1500}
-]
+{
+  "generated_at": "2026-02-25T12:00:00Z",
+  "currency": "USD",
+  "notes": "Sample, regularly-updated market snapshot. Use programmatic refresh for live data.",
+  "markets": [
+    {
+      "name": "Central Wholesale Market",
+      "region": "Central",
+      "last_updated": "2026-02-25T11:55:00Z",
+      "commodities": {
+        "Wheat": {"unit":"kg","price":0.30,"low":0.28,"high":0.33},
+        "Rice": {"unit":"kg","price":0.45,"low":0.42,"high":0.48},
+        "Maize": {"unit":"kg","price":0.22,"low":0.20,"high":0.25},
+        "Potato": {"unit":"kg","price":0.18,"low":0.15,"high":0.22},
+        "Tomato": {"unit":"kg","price":0.60,"low":0.45,"high":0.75},
+        "Onion": {"unit":"kg","price":0.55,"low":0.40,"high":0.70},
+        "Garlic": {"unit":"kg","price":3.20,"low":2.80,"high":3.60},
+        "Sugarcane": {"unit":"kg","price":0.12,"low":0.10,"high":0.14},
+        "Sunflower": {"unit":"kg","price":0.95,"low":0.88,"high":1.05},
+        "Soybean": {"unit":"kg","price":0.48,"low":0.42,"high":0.52},
+        "Potato (Sweet)": {"unit":"kg","price":0.30,"low":0.25,"high":0.36},
+        "Banana": {"unit":"dozen","price":1.10,"low":0.90,"high":1.30},
+        "Mango": {"unit":"kg","price":1.80,"low":1.50,"high":2.20},
+        "Apple": {"unit":"kg","price":2.20,"low":1.90,"high":2.60},
+        "Orange": {"unit":"kg","price":1.00,"low":0.85,"high":1.20}
+      }
+    },
+    {
+      "name": "Northern Regional Market",
+      "region": "North",
+      "last_updated": "2026-02-25T11:50:00Z",
+      "commodities": {
+        "Wheat": {"unit":"kg","price":0.29,"low":0.27,"high":0.32},
+        "Rice": {"unit":"kg","price":0.44,"low":0.40,"high":0.47},
+        "Maize": {"unit":"kg","price":0.21,"low":0.19,"high":0.24},
+        "Potato": {"unit":"kg","price":0.17,"low":0.14,"high":0.21},
+        "Tomato": {"unit":"kg","price":0.50,"low":0.38,"high":0.68},
+        "Onion": {"unit":"kg","price":0.50,"low":0.36,"high":0.66},
+        "Garlic": {"unit":"kg","price":3.00,"low":2.60,"high":3.40},
+        "Sugarcane": {"unit":"kg","price":0.11,"low":0.09,"high":0.13},
+        "Soybean": {"unit":"kg","price":0.46,"low":0.41,"high":0.50},
+        "Groundnut": {"unit":"kg","price":1.10,"low":0.95,"high":1.25},
+        "Lentil": {"unit":"kg","price":1.30,"low":1.10,"high":1.45},
+        "Tea": {"unit":"kg","price":4.80,"low":4.20,"high":5.30}
+      }
+    },
+    {
+      "name": "Southern Produce Exchange",
+      "region": "South",
+      "last_updated": "2026-02-25T11:40:00Z",
+      "commodities": {
+        "Rice": {"unit":"kg","price":0.46,"low":0.43,"high":0.50},
+        "Maize": {"unit":"kg","price":0.23,"low":0.20,"high":0.26},
+        "Potato": {"unit":"kg","price":0.20,"low":0.16,"high":0.24},
+        "Tomato": {"unit":"kg","price":0.65,"low":0.50,"high":0.80},
+        "Onion": {"unit":"kg","price":0.58,"low":0.45,"high":0.72},
+        "Banana": {"unit":"dozen","price":1.25,"low":1.00,"high":1.50},
+        "Mango": {"unit":"kg","price":2.10,"low":1.70,"high":2.60},
+        "Coconut": {"unit":"piece","price":0.80,"low":0.60,"high":1.00},
+        "Coriander": {"unit":"kg","price":2.50,"low":2.10,"high":2.95},
+        "Chili": {"unit":"kg","price":3.40,"low":2.80,"high":3.90}
+      }
+    },
+    {
+      "name": "Eastern Grain Hub",
+      "region": "East",
+      "last_updated": "2026-02-25T11:45:00Z",
+      "commodities": {
+        "Rice": {"unit":"kg","price":0.43,"low":0.39,"high":0.47},
+        "Wheat": {"unit":"kg","price":0.31,"low":0.29,"high":0.34},
+        "Barley": {"unit":"kg","price":0.26,"low":0.23,"high":0.30},
+        "Sorghum": {"unit":"kg","price":0.19,"low":0.16,"high":0.22},
+        "Quinoa": {"unit":"kg","price":6.50,"low":5.80,"high":7.20},
+        "Pulses (Chickpea)": {"unit":"kg","price":1.60,"low":1.40,"high":1.85}
+      }
+    },
+    {
+      "name": "Metro Retail Hub",
+      "region": "Metro",
+      "last_updated": "2026-02-25T11:30:00Z",
+      "commodities": {
+        "Tomato": {"unit":"kg","price":0.95,"low":0.70,"high":1.20},
+        "Onion": {"unit":"kg","price":0.90,"low":0.70,"high":1.10},
+        "Potato": {"unit":"kg","price":0.35,"low":0.28,"high":0.42},
+        "Carrot": {"unit":"kg","price":0.80,"low":0.65,"high":0.95},
+        "Cabbage": {"unit":"kg","price":0.55,"low":0.45,"high":0.70},
+        "Lettuce": {"unit":"piece","price":0.90,"low":0.70,"high":1.15},
+        "Apple": {"unit":"kg","price":2.80,"low":2.30,"high":3.20}
+      }
+    }
+  ]
+}
