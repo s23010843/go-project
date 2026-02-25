@@ -5,6 +5,15 @@ import ChatWidget from '../components/ChatWidget.astro';
 ---
 <Layout title="Farm Market Prices" description="Compare farm-fresh produce prices across markets in India.">
 
+  <!-- Background video (hidden from assistive tech) -->
+  <div class="bg-video-wrap" aria-hidden="true">
+    <video class="bg-video" autoplay muted loop playsinline preload="auto" poster="/assets/videos/agriculture-environment.mp4">
+      <source src="/assets/videos/agriculture-environment.mp4" type="video/mp4" />
+      <!-- fallback text left intentionally empty for screen readers -->
+    </video>
+    <div class="bg-video-overlay" aria-hidden="true"></div>
+  </div>
+
   <!-- Toast container -->
   <div class="toast-container" id="toastContainer" role="status" aria-live="polite" aria-atomic="false"></div>
 

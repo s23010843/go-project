@@ -20,9 +20,28 @@
 body {
   font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
   font-size: 15px;
-  background: var(--green-50);
+  background: transparent;
   color: var(--text);
   min-height: 100vh;
+}
+
+/* Background video container */
+.bg-video-wrap {
+  position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none;
+}
+.bg-video {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  min-width: 100%; min-height: 100%; width: auto; height: auto;
+  object-fit: cover; filter: brightness(.55) saturate(.95);
+}
+.bg-video-overlay {
+  position: absolute; inset: 0; background: linear-gradient(180deg, rgba(6,24,12,0.18), rgba(6,24,12,0.28));
+  mix-blend-mode: multiply; pointer-events: none;
+}
+
+/* Ensure primary page sections sit above the video */
+header, .page-wrapper, .stats-bar, .card, .site-footer, .chat-fab, .chat-widget, .toast-container {
+  position: relative; z-index: 1;
 }
 
 /* ── Skip link ────────────────────────────────────────── */
@@ -267,6 +286,28 @@ tbody tr:hover td { background: #f5fbf5; }
 .footer-sep { opacity: .35; }
 .site-footer a { color: rgba(255,255,255,.9); text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.3); transition: border-color .15s ease; }
 .site-footer a:hover { border-color: rgba(255,255,255,.8); }
+
+/* Page-specific footer + bot (chat-fab) color themes */
+.page-404 .site-footer {
+  background: linear-gradient(135deg, #ff8a65 0%, #ff7043 100%);
+  color: #fff;
+}
+.page-404 .site-footer a { color: rgba(255,255,255,0.95); border-bottom-color: rgba(255,255,255,0.2); }
+.page-404 .chat-fab { background: linear-gradient(135deg, #ff7043 0%, #ff8a65 100%); box-shadow: 0 8px 28px rgba(255,112,67,.28); }
+
+.page-500 .site-footer {
+  background: linear-gradient(135deg, #b71c1c 0%, #c62828 100%);
+  color: #fff;
+}
+.page-500 .site-footer a { color: rgba(255,255,255,0.95); border-bottom-color: rgba(255,255,255,0.2); }
+.page-500 .chat-fab { background: linear-gradient(135deg, #c62828 0%, #b71c1c 100%); box-shadow: 0 8px 28px rgba(198,40,40,.28); }
+
+.page-offline .site-footer {
+  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+  color: #fff;
+}
+.page-offline .site-footer a { color: rgba(255,255,255,0.95); border-bottom-color: rgba(255,255,255,0.2); }
+.page-offline .chat-fab { background: linear-gradient(135deg, #1565c0 0%, #1976d2 100%); box-shadow: 0 8px 28px rgba(21,101,192,.28); }
 
 /* ── Reduced-motion ───────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {

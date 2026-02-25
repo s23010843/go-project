@@ -3,8 +3,9 @@ import '../styles/global.css';
 export interface Props {
   title?: string;
   description?: string;
+  page?: string;
 }
-const { title = 'Farm Market Prices', description = 'Real-time farm market price comparison across India.' } = Astro.props;
+const { title = 'Farm Market Prices', description = 'Real-time farm market price comparison across India.', page = '' } = Astro.props;
 ---
 <!doctype html>
 <html lang="en">
@@ -29,8 +30,9 @@ const { title = 'Farm Market Prices', description = 'Real-time farm market price
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  
 </head>
-<body>
+<body class={page ? `page-${page}` : ''}>
   <a href="#main-content" class="skip-link">Skip to main content</a>
 
   <slot />
@@ -55,19 +57,8 @@ const { title = 'Farm Market Prices', description = 'Real-time farm market price
     }
   </script>
 
-  <!-- Cookie consent banner + minimal toast helper -->
-  <div id="cookieBanner" class="cookie-banner" aria-live="polite" style="display:none">
-    <div class="cookie-inner">
-      <div class="cookie-text">We use cookies for a better experience. You can enable or disable them.</div>
-      <div class="cookie-actions">
-        <button id="enableCookiesBtn" class="btn">Enable</button>
-        <button id="disableCookiesBtn" class="btn btn-secondary">Disable</button>
-      </div>
-    </div>
-  </div>
-
+  <!-- Minimal toast helper (pages may provide #toastContainer; create if missing) -->
   <script>
-    // Minimal toast helper (pages may provide #toastContainer; create if missing)
     function _getToastContainer(): HTMLElement {
       let c = document.getElementById('toastContainer') as HTMLElement | null;
       if (!c) {
@@ -93,32 +84,6 @@ const { title = 'Farm Market Prices', description = 'Real-time farm market price
         t.addEventListener('animationend', () => t.remove(), { once: true });
       }, duration);
     }
-
-    function setCookieConsent(enabled: boolean): void {
-      const val = enabled ? '1' : '0';
-      const expires = new Date(Date.now() + 365*24*60*60*1000).toUTCString();
-      document.cookie = `cookie_consent=${val}; path=/; expires=${expires}; SameSite=Lax`;
-      const banner = document.getElementById('cookieBanner');
-      if (banner) banner.style.display = 'none';
-      createToast(enabled ? 'Cookies enabled' : 'Cookies disabled', enabled ? 'success' : 'info');
-    }
-
-    function readCookieConsent(): string | null {
-      const m = document.cookie.match(/(?:^|; )cookie_consent=([^;]+)/);
-      return m ? m[1] : null;
-    }
-
-    window.addEventListener('load', () => {
-      const consent = readCookieConsent();
-      const banner = document.getElementById('cookieBanner');
-      if (consent === null && banner) {
-        banner.style.display = '';
-      }
-      const enableBtn = document.getElementById('enableCookiesBtn');
-      const disableBtn = document.getElementById('disableCookiesBtn');
-      if (enableBtn) enableBtn.addEventListener('click', () => setCookieConsent(true));
-      if (disableBtn) disableBtn.addEventListener('click', () => setCookieConsent(false));
-    });
   </script>
 </body>
 </html>
