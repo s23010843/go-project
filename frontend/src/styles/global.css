@@ -499,13 +499,13 @@ tbody tr:hover td { background: #edf8ee !important; }
 }
 .chat-message.user {
   background: linear-gradient(145deg, var(--green-600), var(--green-800));
-  color: #fff; align-self: flex-end;
+  color: #fff;
   border-bottom-right-radius: var(--radius-sm);
   box-shadow: 0 2px 8px rgba(30,90,35,.20);
 }
 .chat-message.bot {
   background: var(--surface); border: 1px solid var(--border-soft);
-  color: var(--text); align-self: flex-start;
+  color: var(--text);
   border-bottom-left-radius: var(--radius-sm);
   box-shadow: var(--shadow-xs);
 }
@@ -586,11 +586,17 @@ tbody tr:hover td { background: #edf8ee !important; }
 .chip:active { transform: translateY(0); }
 
 /* ── Message container (text + copy btn) ─────────────── */
+/* Outer wrapper is a flex child of chat-window (column).  */
+/* align-self controls left/right position in that column. */
 .chat-message-container {
   display: flex; align-items: flex-end; gap: 4px;
-  max-width: 100%;
+  align-self: flex-start;  /* bot — flush left  */
+  max-width: 86%;
 }
-.chat-message-container.user { flex-direction: row-reverse; }
+.chat-message-container.user {
+  flex-direction: row-reverse;
+  align-self: flex-end;    /* user — flush right */
+}
 
 /* ── Copy button on bot messages ──────────────────────── */
 .chat-copy-btn {
@@ -673,7 +679,24 @@ tbody tr:hover td { background: #edf8ee !important; }
    ══════════════════════════════════════════════════════════ */
 
 /* ── 404 · "Lost in the Fields" ── Amber / Warm-Gold ───── */
-.page-404 .site-footer { color: #fff; }
+
+/* Page header */
+.page-404 header {
+  background: linear-gradient(145deg,
+    #bf360c 0%,
+    #e65100 40%,
+    #f57c00 80%,
+    #f9a825 100%);
+}
+.page-404 header::before {
+  background: radial-gradient(ellipse 70% 120% at 50% -20%,
+    rgba(255,202,40,.20) 0%, transparent 70%);
+}
+
+.page-404 .site-footer {
+  background: linear-gradient(135deg, #bf360c 0%, #e65100 100%);
+  color: #fff;
+}
 .page-404 .site-footer a { color: rgba(255,255,255,.95); border-bottom-color: rgba(255,255,255,.22); }
 
 /* FAB */
@@ -738,6 +761,26 @@ tbody tr:hover td { background: #edf8ee !important; }
   background: #fff3e0;
   border-color: rgba(230,81,0,.5);
   color: #bf360c;
+}
+
+/* Bot SVG — 404 amber body tint */
+.page-404 .chat-fab .bot-svg rect:nth-of-type(1),
+.page-404 .chat-fab .bot-svg rect:nth-of-type(3),
+.page-404 .chat-widget-header .bot-svg rect:nth-of-type(1),
+.page-404 .chat-widget-header .bot-svg rect:nth-of-type(3) { fill: #e65100; }
+.page-404 .chat-fab .bot-svg rect:nth-of-type(2),
+.page-404 .chat-widget-header .bot-svg rect:nth-of-type(2) { fill: #fff3e0; }
+.page-404 .chat-fab .bot-svg circle:nth-of-type(3),
+.page-404 .chat-fab .bot-svg circle:nth-of-type(4),
+.page-404 .chat-widget-header .bot-svg circle:nth-of-type(3),
+.page-404 .chat-widget-header .bot-svg circle:nth-of-type(4) { fill: #bf360c; }
+.page-404 .chat-fab .bot-svg circle:last-of-type,
+.page-404 .chat-widget-header .bot-svg circle:last-of-type { fill: #ffca28; }
+
+/* Widget panel accent */
+.page-404 .chat-widget {
+  border-color: rgba(230,81,0,.22);
+  box-shadow: var(--shadow-lg), 0 0 0 1.5px rgba(230,81,0,.10), 0 2px 8px rgba(0,0,0,.08);
 }
 
 /* ── 500 · "Server on Fire" ── Crimson / Deep-Red ────────── */
@@ -819,6 +862,26 @@ tbody tr:hover td { background: #edf8ee !important; }
   color: #b71c1c;
 }
 
+/* Bot SVG — 500 crimson body tint */
+.page-500 .chat-fab .bot-svg rect:nth-of-type(1),
+.page-500 .chat-fab .bot-svg rect:nth-of-type(3),
+.page-500 .chat-widget-header .bot-svg rect:nth-of-type(1),
+.page-500 .chat-widget-header .bot-svg rect:nth-of-type(3) { fill: #b71c1c; }
+.page-500 .chat-fab .bot-svg rect:nth-of-type(2),
+.page-500 .chat-widget-header .bot-svg rect:nth-of-type(2) { fill: #ffebee; }
+.page-500 .chat-fab .bot-svg circle:nth-of-type(3),
+.page-500 .chat-fab .bot-svg circle:nth-of-type(4),
+.page-500 .chat-widget-header .bot-svg circle:nth-of-type(3),
+.page-500 .chat-widget-header .bot-svg circle:nth-of-type(4) { fill: #7f0000; }
+.page-500 .chat-fab .bot-svg circle:last-of-type,
+.page-500 .chat-widget-header .bot-svg circle:last-of-type { fill: #ff5252; }
+
+/* Widget panel accent */
+.page-500 .chat-widget {
+  border-color: rgba(183,28,28,.22);
+  box-shadow: var(--shadow-lg), 0 0 0 1.5px rgba(183,28,28,.10), 0 2px 8px rgba(0,0,0,.08);
+}
+
 /* ── Offline · "Disconnected" ── Steel-Blue / Navy ───────── */
 .page-offline .site-footer { color: #fff; }
 .page-offline .site-footer a { color: rgba(255,255,255,.95); border-bottom-color: rgba(255,255,255,.22); }
@@ -889,6 +952,105 @@ tbody tr:hover td { background: #edf8ee !important; }
   background: #e3f2fd;
   border-color: rgba(13,71,161,.42);
   color: #0d47a1;
+}
+
+/* Bot SVG — offline navy body tint */
+.page-offline .chat-fab .bot-svg rect:nth-of-type(1),
+.page-offline .chat-fab .bot-svg rect:nth-of-type(3),
+.page-offline .chat-widget-header .bot-svg rect:nth-of-type(1),
+.page-offline .chat-widget-header .bot-svg rect:nth-of-type(3) { fill: #0d47a1; }
+.page-offline .chat-fab .bot-svg rect:nth-of-type(2),
+.page-offline .chat-widget-header .bot-svg rect:nth-of-type(2) { fill: #e3f2fd; }
+.page-offline .chat-fab .bot-svg circle:nth-of-type(3),
+.page-offline .chat-fab .bot-svg circle:nth-of-type(4),
+.page-offline .chat-widget-header .bot-svg circle:nth-of-type(3),
+.page-offline .chat-widget-header .bot-svg circle:nth-of-type(4) { fill: #01579b; }
+.page-offline .chat-fab .bot-svg circle:last-of-type,
+.page-offline .chat-widget-header .bot-svg circle:last-of-type { fill: #40c4ff; }
+
+/* Widget panel accent */
+.page-offline .chat-widget {
+  border-color: rgba(13,71,161,.22);
+  box-shadow: var(--shadow-lg), 0 0 0 1.5px rgba(13,71,161,.10), 0 2px 8px rgba(0,0,0,.08);
+}
+
+/* Footer */
+.page-offline .site-footer {
+  background: linear-gradient(135deg, #0d47a1 0%, #01579b 100%);
+}
+
+/* ══════════════════════════════════════════════════════
+   Index / Home · “Fertile Fields” — Emerald Deep-Green
+   A richer, slightly elevated version of the base green brand
+   ══════════════════════════════════════════════════════ */
+.page-index .chat-fab {
+  background: linear-gradient(145deg, var(--green-500) 0%, var(--green-900) 100%);
+  box-shadow: 0 8px 28px rgba(30,90,35,.52), 0 2px 8px rgba(0,0,0,.18),
+              0 1px 0 rgba(255,255,255,.14) inset;
+}
+.page-index .chat-fab:hover {
+  box-shadow: 0 14px 36px rgba(30,90,35,.64), 0 4px 12px rgba(0,0,0,.22),
+              0 1px 0 rgba(255,255,255,.14) inset;
+}
+
+/* Widget header — deeper green gradient */
+.page-index .chat-widget-header {
+  background: linear-gradient(145deg, var(--green-600) 0%, var(--green-950) 100%);
+}
+
+/* Widget panel accent */
+.page-index .chat-widget {
+  border-color: rgba(27,94,32,.20);
+  box-shadow: var(--shadow-lg), 0 0 0 1.5px rgba(27,94,32,.10), 0 2px 8px rgba(0,0,0,.08);
+}
+
+/* Status dot — vivid green pulse */
+.page-index .chat-status-dot {
+  background: #69f0ae;
+  box-shadow: 0 0 0 0 rgba(105,240,174,.7);
+}
+
+/* User bubbles — slightly brighter */
+.page-index .chat-message.user {
+  background: linear-gradient(145deg, var(--green-500), var(--green-800));
+  box-shadow: 0 2px 8px rgba(30,90,35,.24);
+}
+
+/* Chat window tint — fresh mint */
+.page-index .chat-window {
+  background: linear-gradient(180deg, #f1fbf2 0%, #e8f5e9 100%);
+}
+.page-index .chat-window::-webkit-scrollbar-thumb { background: var(--green-300, #a5d6a7); }
+.page-index .chat-window::-webkit-scrollbar-thumb:hover { background: var(--green-400); }
+
+/* Send button */
+.page-index .chat-input-row button {
+  background: linear-gradient(145deg, var(--green-500), var(--green-800));
+}
+.page-index .chat-input-row input:focus {
+  border-color: var(--green-500);
+  box-shadow: 0 0 0 4px rgba(67,160,71,.16);
+}
+
+/* Copy button accent */
+.page-index .chat-copy-btn:hover {
+  background: var(--green-50); border-color: var(--green-400); color: var(--green-700);
+}
+.page-index .chat-copy-btn[aria-pressed="true"] {
+  background: var(--green-100); border-color: var(--green-500); color: var(--green-700);
+}
+
+/* Typing dots */
+.page-index .chat-typing span { background: var(--green-500); }
+
+/* Chips */
+.page-index .chip {
+  border-color: rgba(27,94,32,.22);
+  color: var(--green-800);
+}
+.page-index .chip:hover {
+  background: var(--green-50);
+  border-color: rgba(27,94,32,.46);
 }
 
 /* ── Reduced-motion ───────────────────────────────────── */

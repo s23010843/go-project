@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import BotSvg from '../components/BotSvg.astro';
+import ChatWidget from '../components/ChatWidget.astro';
 ---
 <Layout title="You're Offline — Farm Market Prices" page="offline">
   <div class="offline-bg">
@@ -88,6 +89,8 @@ import BotSvg from '../components/BotSvg.astro';
       </div>
     </div>
   </main>
+
+  <ChatWidget />
 </Layout>
 
 <script>

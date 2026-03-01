@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import BotSvg from '../components/BotSvg.astro';
+import ChatWidget from '../components/ChatWidget.astro';
 ---
 <Layout title="Page Not Found — Farm Market Prices" page="404">
   <div class="offline-bg">
@@ -24,22 +25,22 @@ import BotSvg from '../components/BotSvg.astro';
       padding: 36px 32px;
       text-align: center;
     }
-    .error-card h2 { font-size: 1.7rem; color: var(--green-900); margin-bottom: 10px; font-weight: 800; letter-spacing: -.4px; }
+    .error-card h2 { font-size: 1.7rem; color: #bf360c; margin-bottom: 10px; font-weight: 800; letter-spacing: -.4px; }
     .error-card p { color: var(--muted); font-size: .95rem; line-height: 1.75; margin-bottom: 28px; }
     .error-back-btn {
       display: inline-flex; align-items: center; gap: 7px;
       padding: 11px 30px;
-      background: linear-gradient(135deg, var(--green-600), var(--green-800));
+      background: linear-gradient(135deg, #f57c00, #e65100);
       color: #fff; border-radius: var(--radius-pill);
       text-decoration: none; font-weight: 700; font-size: .92rem;
-      box-shadow: 0 4px 14px rgba(30,90,35,.30);
+      box-shadow: 0 4px 14px rgba(230,81,0,.32);
       transition: filter .18s ease, transform .18s ease, box-shadow .18s ease;
       letter-spacing: .01em;
     }
-    .error-back-btn:hover { filter: brightness(1.08); transform: translateY(-2px); box-shadow: 0 8px 22px rgba(30,90,35,.38); }
+    .error-back-btn:hover { filter: brightness(1.08); transform: translateY(-2px); box-shadow: 0 8px 22px rgba(230,81,0,.42); }
   </style>
 
-  <header>
+  <header style="background:linear-gradient(145deg,#bf360c 0%,#e65100 40%,#f57c00 80%,#f9a825 100%)">
     <h1>🌾 Farm Market Prices</h1>
   </header>
   <main id="main-content">
@@ -60,6 +61,8 @@ import BotSvg from '../components/BotSvg.astro';
       </div>
     </div>
   </main>
+
+  <ChatWidget />
 </Layout>
 
 <script>

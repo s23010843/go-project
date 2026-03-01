@@ -254,6 +254,16 @@ if (!fab || !widget || !closeBtn || !chatWindow || !chatInput || !chatSend) {
   }
 
   let prevFocus = null;
+
+  // Context-aware greeting based on which page is active
+  function getWelcomeMsg() {
+    const cls = document.body.className;
+    if (cls.includes('page-404')) return "👋 Lost your way? I'm FarmBot — ask me anything about crops, prices, or markets!";
+    if (cls.includes('page-500')) return "👋 Hi! Looks like the server had a hiccup. I'm still here — ask me about farm prices or markets.";
+    if (cls.includes('page-offline')) return "👋 You're offline, but I'm still available! Ask me about cached prices or how to use this app.";
+    return '👋 Hi! Ask me about crop prices, markets, or use the tools above.';
+  }
+
   function openChat() {
     prevFocus = document.activeElement;
     $widget.setAttribute('aria-hidden','false');
@@ -261,7 +271,7 @@ if (!fab || !widget || !closeBtn || !chatWindow || !chatInput || !chatSend) {
     $widget.setAttribute('aria-modal','true');
     $widget.removeAttribute('tabindex');
     enableFocusTrap();
-    if (!$chatWindow.childElementCount) addBotMsg('👋 Hi! Ask me about crop prices, markets, or use the tools above.');
+    if (!$chatWindow.childElementCount) addBotMsg(getWelcomeMsg());
     setTimeout(function(){ try { $chatInput.focus(); } catch (e) {} }, 220);
   }
   function closeChat() {
@@ -282,7 +292,7 @@ if (!fab || !widget || !closeBtn || !chatWindow || !chatInput || !chatSend) {
       $widget.setAttribute('aria-modal', 'true');
       $widget.removeAttribute('tabindex');
       enableFocusTrap();
-      if (!$chatWindow.childElementCount) addBotMsg('👋 Hi! Ask me about crop prices, markets, or use the tools above.');
+      if (!$chatWindow.childElementCount) addBotMsg(getWelcomeMsg());
       setTimeout(function(){ try { $chatInput.focus(); } catch (e) {} }, 220);
     } else {
       $widget.removeAttribute('aria-modal');
@@ -300,12 +310,14 @@ if (!fab || !widget || !closeBtn || !chatWindow || !chatInput || !chatSend) {
   $chatInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') sendMsg(); });
   
   function addMsg(text, who) {
+    // Outer flex row: positions bubble + copy-btn side by side
     const container = document.createElement('div');
-    container.className = 'chat-message ' + who;
+    container.className = 'chat-message-container ' + who;
 
-    const msg = document.createElement('div');
-    msg.className = 'chat-message__text';
-    msg.textContent = text;
+    // Inner bubble — carries the visual styles (colour, border-radius, etc.)
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-message ' + who;
+    bubble.textContent = text;
 
     const copyBtn = document.createElement('button');
     copyBtn.type = 'button';
@@ -316,7 +328,7 @@ if (!fab || !widget || !closeBtn || !chatWindow || !chatInput || !chatSend) {
     copyBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="13" height="13" x="9" y="9" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
     copyBtn.addEventListener('click', function(e) { e.stopPropagation(); copyToClipboard(text, copyBtn); });
 
-    container.appendChild(msg);
+    container.appendChild(bubble);
     container.appendChild(copyBtn);
     $chatWindow.appendChild(container);
     $chatWindow.scrollTop = $chatWindow.scrollHeight;
