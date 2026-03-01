@@ -2,8 +2,8 @@
 import BotSvg from './BotSvg.astro';
 ---
 <!-- Floating Chat Button -->
-<button class="chat-fab" id="chatFab" aria-label="Open chat assistant" aria-expanded="false" aria-controls="chatWidget">
-    <span class="fab-icon fab-icon--bot">
+<button class="chat-fab" id="chatFab" aria-label="Open FarmBot chat assistant" aria-expanded="false" aria-controls="chatWidget">
+  <span class="fab-icon fab-icon--bot">
     <BotSvg idPrefix="bot-fab" size={38} mood="happy" bodyColor="#2e7d32" pupilColor="#1b5e20" />
   </span>
   <span class="fab-icon fab-icon--close" aria-hidden="true">
@@ -16,25 +16,40 @@ import BotSvg from './BotSvg.astro';
 <!-- Chat Widget Panel -->
 <aside class="chat-widget" id="chatWidget" role="dialog" aria-labelledby="chatTitle" aria-hidden="true" tabindex="-1">
 
+  <!-- Header -->
   <div class="chat-widget-header">
     <div class="chat-widget-title">
-        <span class="chat-header-icon">
+      <span class="chat-header-icon">
         <BotSvg idPrefix="bot-hdr" size={28} mood="happy" bodyColor="#2e7d32" pupilColor="#1b5e20" />
       </span>
-      <span id="chatTitle">FarmBot Assistant</span>
+      <div class="chat-title-group">
+        <span id="chatTitle">FarmBot</span>
+        <span class="chat-status"><span class="chat-status-dot" aria-hidden="true"></span>Online</span>
+      </div>
     </div>
-    <button id="loadPricesAjax" class="chat-price-btn" title="Load prices via AJAX">Load Prices (AJAX)</button>
     <button class="chat-close-btn" id="chatClose" aria-label="Close chat">
       <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
         <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
       </svg>
     </button>
   </div>
+
+  <!-- Message log -->
   <div class="chat-window" id="chatWindow" role="log" aria-live="polite" aria-label="Chat messages"></div>
+
+  <!-- Quick-reply chips (hidden after first use) -->
+  <div class="chat-chips" id="chatChips" aria-label="Quick replies">
+    <button type="button" class="chip" data-query="List crops">🌾 Crops</button>
+    <button type="button" class="chip" data-query="List markets">🏪 Markets</button>
+    <button type="button" class="chip" data-query="How do I check a price?">❓ How to use</button>
+    <button type="button" class="chip" data-query="Help">💬 Help</button>
+  </div>
+
+  <!-- Input row -->
   <div class="chat-input-row">
     <label for="chatInput" class="sr-only">Message FarmBot</label>
-    <input type="text" id="chatInput" placeholder="Ask about prices, crops…" autocomplete="off" aria-label="Message input" />
-    <button id="chatSend" aria-label="Send message">
+    <input type="text" id="chatInput" placeholder="Ask about prices or crops…" autocomplete="off" aria-label="Message input" maxlength="300" />
+    <button id="chatSend" aria-label="Send message" title="Send">
       <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <line x1="22" y1="2" x2="11" y2="13"/>
         <polygon points="22 2 15 22 11 13 2 9 22 2"/>
@@ -297,8 +312,8 @@ if (!fab || !widget || !closeBtn || !chatWindow || !chatInput || !chatSend) {
     copyBtn.className = 'chat-copy-btn';
     copyBtn.setAttribute('aria-label', 'Copy message');
     copyBtn.title = 'Copy message';
-    // clipboard SVG (no visible text)
-    copyBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 4h-1.5a2 2 0 0 0-3.9 0H9a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><path d="M9 8h6"></path></svg>';
+    // clipboard SVG — professional two-document copy icon (Lucide style)
+    copyBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="13" height="13" x="9" y="9" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
     copyBtn.addEventListener('click', function(e) { e.stopPropagation(); copyToClipboard(text, copyBtn); });
 
     container.appendChild(msg);
@@ -312,7 +327,7 @@ if (!fab || !widget || !closeBtn || !chatWindow || !chatInput || !chatSend) {
   function copyToClipboard(text, btn) {
     if (!btn) return;
     const originalHTML = btn.innerHTML;
-    const checkSVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+    const checkSVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>';
     function flash() {
       btn.innerHTML = checkSVG;
       btn.setAttribute('aria-pressed','true');

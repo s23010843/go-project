@@ -11,10 +11,48 @@ import BotSvg from '../components/BotSvg.astro';
   </div>
 
   <style>
-    .offline-bg video { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
-    .offline-bg .bg-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.28); z-index: -1; }
+    .offline-bg video { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; filter: brightness(.44) saturate(.80); }
+    .offline-bg .bg-overlay { position: fixed; inset: 0; background: rgba(4,12,24,0.30); z-index: -1; }
     main#main-content, header { position: relative; z-index: 1; }
     .page-wrapper { min-height: 80vh; display:flex; align-items:center; justify-content:center; }
+    .error-card {
+      max-width: 480px; width: 100%;
+      background: rgba(255,255,255,0.97);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      padding: 36px 32px;
+      text-align: center;
+    }
+    .error-card h2 { font-size: 1.65rem; color: var(--green-900); margin-bottom: 10px; font-weight: 800; letter-spacing: -.4px; }
+    .error-card > p { color: var(--muted); font-size: .93rem; line-height: 1.75; margin-bottom: 20px; }
+    .offline-checklist {
+      background: var(--green-50); border: 1.5px solid var(--green-200);
+      border-radius: var(--radius-lg); text-align: left;
+      padding: 16px 20px; margin-bottom: 24px;
+    }
+    .offline-checklist p { font-weight: 700; color: var(--green-800); margin-bottom: 10px; font-size: .9rem; }
+    .offline-checklist ul { color: var(--muted); font-size: .875rem; line-height: 2; list-style: none; padding: 0; }
+    .err-btn-primary {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 11px 26px;
+      background: linear-gradient(135deg, var(--green-600), var(--green-800));
+      color: #fff; border: none; border-radius: var(--radius-pill);
+      font-weight: 700; font-size: .92rem; font-family: inherit; cursor: pointer;
+      box-shadow: 0 4px 14px rgba(30,90,35,.28);
+      transition: filter .18s ease, transform .18s ease, box-shadow .18s ease;
+    }
+    .err-btn-primary:hover { filter: brightness(1.08); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(30,90,35,.34); }
+    .err-btn-secondary {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 11px 26px;
+      background: var(--surface); color: var(--green-800);
+      border: 1.5px solid var(--border); border-radius: var(--radius-pill);
+      text-decoration: none; font-weight: 600; font-size: .92rem;
+      transition: background .18s ease, border-color .18s ease;
+    }
+    .err-btn-secondary:hover { background: var(--green-50); border-color: var(--green-400); }
+    .action-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
   </style>
 
   <header>
@@ -22,18 +60,16 @@ import BotSvg from '../components/BotSvg.astro';
   </header>
   <main id="main-content">
     <div class="page-wrapper" style="align-items:center; text-align:center; padding-top:60px">
-      <div class="card" style="max-width:480px; width:100%">
+      <div class="error-card">
         <div style="margin-bottom:16px">
-          <BotSvg idPrefix="bot-offline" size={90} mood="neutral" bodyColor="#546e7a" panelColor="#eceff1" pupilColor="#263238" antennaColor="#90a4ae" mouthColor="#37474f" />
+          <BotSvg idPrefix="bot-offline" size={92} mood="neutral" bodyColor="#546e7a" panelColor="#eceff1" pupilColor="#263238" antennaColor="#90a4ae" mouthColor="#37474f" />
         </div>
-        <h2 style="font-size:1.5rem; color:#1b5e20; margin-bottom:8px">You're Offline</h2>
-        <p style="color:var(--muted); font-size:.93rem; line-height:1.7; margin-bottom:20px">
-          No internet connection detected. You can still access cached data.
-        </p>
+        <h2>You're Offline</h2>
+        <p>No internet connection detected. You can still access cached data.</p>
 
-        <div class="card" style="background:#e8f5e9; border-color:#c8e6c9; text-align:left; margin-bottom:20px; padding:16px 20px">
-          <p style="font-weight:600; color:#2e7d32; margin-bottom:10px">✅ Available offline:</p>
-          <ul style="color:#607060; font-size:.88rem; line-height:1.9; list-style:none; padding:0">
+        <div class="offline-checklist">
+          <p>✅ Available offline:</p>
+          <ul>
             <li>✔ Previously loaded price data</li>
             <li>✔ Filter and search functionality</li>
             <li>✔ CSV download of cached data</li>
@@ -41,11 +77,11 @@ import BotSvg from '../components/BotSvg.astro';
           </ul>
         </div>
 
-        <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap">
-          <button id="retryBtn" type="button" aria-label="Retry loading the site" style="padding:10px 24px; background:#2e7d32; color:#fff; border-radius:8px; border:none; font-weight:600; cursor:pointer; font-size:.93rem">
+        <div class="action-row">
+          <button id="retryBtn" type="button" aria-label="Retry loading the site" class="err-btn-primary">
             🔄 Try Again
           </button>
-          <a href="/" style="display:inline-block; padding:10px 24px; background:#e8f5e9; color:#1b5e20; border:1px solid #c8e6c9; border-radius:8px; text-decoration:none; font-weight:600; font-size:.93rem">
+          <a href="/" class="err-btn-secondary" aria-label="Go to home page">
             🌾 Go Home
           </a>
         </div>

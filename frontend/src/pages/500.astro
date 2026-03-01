@@ -11,10 +11,41 @@ import BotSvg from '../components/BotSvg.astro';
   </div>
 
   <style>
-    .offline-bg video { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
-    .offline-bg .bg-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.28); z-index: -1; }
+    .offline-bg video { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; filter: brightness(.42) saturate(.80); }
+    .offline-bg .bg-overlay { position: fixed; inset: 0; background: rgba(40,4,4,0.32); z-index: -1; }
     main#main-content, header { position: relative; z-index: 1; }
     .page-wrapper { min-height: 80vh; display:flex; align-items:center; justify-content:center; }
+    .error-card {
+      max-width: 460px; width: 100%;
+      background: rgba(255,255,255,0.97);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      padding: 36px 32px;
+      text-align: center;
+    }
+    .error-card h2 { font-size: 1.7rem; color: #b71c1c; margin-bottom: 10px; font-weight: 800; letter-spacing: -.4px; }
+    .error-card p { color: var(--muted); font-size: .95rem; line-height: 1.75; margin-bottom: 28px; }
+    .err-btn-primary {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 11px 26px;
+      background: linear-gradient(135deg, #e53935, #b71c1c);
+      color: #fff; border: none; border-radius: var(--radius-pill);
+      font-weight: 700; font-size: .92rem; font-family: inherit; cursor: pointer;
+      box-shadow: 0 4px 14px rgba(183,28,28,.30);
+      transition: filter .18s ease, transform .18s ease, box-shadow .18s ease;
+    }
+    .err-btn-primary:hover { filter: brightness(1.08); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(183,28,28,.36); }
+    .err-btn-secondary {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 11px 26px;
+      background: var(--surface); color: var(--green-800);
+      border: 1.5px solid var(--border); border-radius: var(--radius-pill);
+      text-decoration: none; font-weight: 600; font-size: .92rem;
+      transition: background .18s ease, border-color .18s ease;
+    }
+    .err-btn-secondary:hover { background: var(--green-50); border-color: var(--green-400); }
+    .action-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
   </style>
 
   <header style="background:linear-gradient(135deg,#b71c1c 0%,#c62828 60%,#ef5350 100%)">
@@ -22,21 +53,21 @@ import BotSvg from '../components/BotSvg.astro';
   </header>
   <main id="main-content">
     <div class="page-wrapper" style="align-items:center; text-align:center; padding-top:60px">
-      <div class="card" style="max-width:460px; width:100%">
-        <div style="position:relative; display:inline-block; margin-bottom:12px">
-          <BotSvg idPrefix="bot-500" size={90} mood="sad" bodyColor="#b71c1c" antennaColor="#c62828" mouthColor="#b71c1c" />
-          <span style="position:absolute; top:-6px; right:-10px; background:#ef5350; color:#fff; border-radius:50%; width:28px; height:28px; font-size:.85rem; font-weight:700; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,.2)">!</span>
+      <div class="error-card">
+        <div style="position:relative; display:inline-block; margin-bottom:16px">
+          <BotSvg idPrefix="bot-500" size={92} mood="sad" bodyColor="#b71c1c" antennaColor="#c62828" mouthColor="#b71c1c" />
+          <span style="position:absolute; top:-6px; right:-10px; background:linear-gradient(135deg,#ef5350,#b71c1c); color:#fff; border-radius:50%; width:30px; height:30px; font-size:.85rem; font-weight:800; display:flex; align-items:center; justify-content:center; box-shadow:0 3px 10px rgba(0,0,0,.25); border:2.5px solid #fff">!</span>
         </div>
-        <h2 style="font-size:1.6rem; color:#b71c1c; margin-bottom:8px">Something Went Wrong</h2>
-        <p style="color:var(--muted); font-size:.95rem; line-height:1.7; margin-bottom:24px">
+        <h2>Something Went Wrong</h2>
+        <p>
           Our server hit a bump in the road. Don't worry — our team has been notified.<br>
           Please try again in a moment.
         </p>
-        <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap">
-          <button type="button" id="tryAgain" aria-label="Try reloading the page" style="padding:10px 24px; background:#c62828; color:#fff; border-radius:8px; border:none; font-weight:600; font-size:.93rem; cursor:pointer">
+        <div class="action-row">
+          <button type="button" id="tryAgain" aria-label="Try reloading the page" class="err-btn-primary">
             🔄 Try Again
           </button>
-          <a href="/" style="display:inline-block; padding:10px 24px; background:#e8f5e9; color:#1b5e20; border-radius:8px; text-decoration:none; font-weight:600; font-size:.93rem; border:1px solid #d4e5d5">
+          <a href="/" class="err-btn-secondary" aria-label="Back to homepage">
             🌾 Back to Home
           </a>
         </div>
